@@ -21,7 +21,7 @@ def testing():
 def index():
     print('Accessed to test server.')
     #Input: 이미지 주소, 유저 정보(id)
-    req = request.form
+    req = request.json
     print('Request: ', req)  #req: ImmutableMultiDict
 
     #파라미터 읽어들이기

@@ -124,7 +124,7 @@ def analysis(url, uid):
     cfg_Seg.MODEL.DEVICE = 'cpu'
     cfg_Key.merge_from_list(['MODEL.DEVICE','cpu'])    #이 코드를 추가하시면 cpu모드로 구동하게 됩니다.
     #cfg_Key.merge_from_file("/var/www/detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml") # cd detectron2 로 경로 변경한 경우 이것으로 실행.
-    cfg_Seg.merge_from_file(model_zoo.get_config_file("COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"))
+    cfg_Key.merge_from_file(model_zoo.get_config_file("COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"))
     cfg_Key.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7  # set threshold for this model
 
     # keypoint 모델 선택(다양한 모델을 사용할 수 있음).
