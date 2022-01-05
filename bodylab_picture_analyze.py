@@ -7,6 +7,7 @@ import os
 from urllib.request import urlopen
 from global_things.variables import BUCKET_NAME, BUCKET_OUTPUT_PATH, ANALYZED_IMAGE_PATH, SLACK_NOTIFICATION_WEBHOOK
 import boto3
+from PIL import Image
 
 # 출력 형식에 관한 자세한 내용은 다음 주소를 참고하세요: # https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
 from detectron2.engine import DefaultPredictor
@@ -23,7 +24,7 @@ def analysis(url, uid):
 
     #1. 이미지 데이터 read
     try:
-        req = urlopen(url)
+        req = Image.open(urlopen(url))
     except: #NoneType Error or something...
         result_dict = {
             'message': 'Cannot find image.',
