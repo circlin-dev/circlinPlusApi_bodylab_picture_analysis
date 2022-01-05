@@ -1,4 +1,3 @@
-from s3_configs import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 import boto3
 
 def error_notification_slack(userid, nickname, api, error):

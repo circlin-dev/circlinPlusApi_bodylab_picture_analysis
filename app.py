@@ -59,5 +59,3 @@ def index():
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", debug=True)
-    #app.debug = True
-    #app.run(host='0.0.0.0', port=443, ssl_context=('/etc/letsencrypt/live/www.circlinad.co.kr/cert.pem', '/etc/letsencrypt/live/www.circlinad.co.kr/privkey.pem'))
