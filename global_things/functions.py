@@ -15,11 +15,10 @@ def error_notification_slack(userid, nickname, api, error):
 
 
 def upload_output_to_s3(file_name, BUCKET_NAME, object_name):
-  s3 = boto3.client('s3')
-  bucket = s3.Bucket(BUCKET_NAME)
+  s3_client = boto3.client('s3')
 
   try:
-    bucket.upload_file(file_name, BUCKET_NAME, object_name)
+    s3_client.upload_file(file_name, BUCKET_NAME, object_name)
   except Exception as e:
     return e
 
