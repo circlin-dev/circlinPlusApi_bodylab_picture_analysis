@@ -313,7 +313,7 @@ def analysis(url, uid):
     nt = dt.strftime('%Y%m%d%H%M%S')
 
     output = cv2.resize(v_Key.get_image()[:, :, ::-1], dsize=(0, 0), fx=0.3, fy=0.3, interpolation=cv2.INTER_LINEAR) ######아래 줄과 바꿔치기하기
-    if uid not in os.listdir(f"{ANALYZED_IMAGE_PATH}"):
+    if str(uid) not in os.listdir(f"{ANALYZED_IMAGE_PATH}"):
         os.makedirs(f"{ANALYZED_IMAGE_PATH}/{uid}")
     file_name =  f'{uid}_{nt}.jpg'
     analyzed_image = f'{ANALYZED_IMAGE_PATH}/{uid}/{file_name}'
