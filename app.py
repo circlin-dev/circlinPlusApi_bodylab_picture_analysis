@@ -51,6 +51,9 @@ def index():
     elif json.loads(result)['message'] == 'Bad pose. Invalid body length.':
         print(json.loads(result)['message'])
         return result, 400
+    elif json.loads(result)['message'] == 'Image upload error.':
+        print(json.loads(result)['message'])
+        return result, 500
     else:
         return result, 200
 

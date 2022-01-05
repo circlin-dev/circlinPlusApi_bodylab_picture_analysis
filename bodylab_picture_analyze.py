@@ -6,8 +6,7 @@ import json
 import os
 from urllib.request import urlopen
 from global_things.variables import BUCKET_NAME, BUCKET_OUTPUT_PATH, ANALYZED_IMAGE_PATH, SLACK_NOTIFICATION_WEBHOOK
-import boto3
-from PIL import Image
+from global_things.functions import upload_output_to_s3
 
 # 출력 형식에 관한 자세한 내용은 다음 주소를 참고하세요: # https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
 from detectron2.engine import DefaultPredictor
@@ -321,11 +320,16 @@ def analysis(url, uid):
     cv2.imwrite(analyzed_image, output)
 
     #7. S3에 분석 결과 이미지(output_path) 원본 저장
-    s3 = boto3.resource('s3')
-    bucket = s3.Bucket(BUCKET_NAME)
-
-    upload_to_s3 = f"{BUCKET_OUTPUT_PATH}/{uid}/{file_name}"
-    bucket.upload_file(upload_to_s3)
+    object_name = f"{BUCKET_OUTPUT_PATH}/{uid}/{file_name}"
+    if upload_output_to_s3(analyzed_image, BUCKET_NAME, object_name) == True:
+        pass
+    else:
+        result_dict = {
+            'message': 'Image upload error.',
+            'success': 'n'
+        }
+        print('Pose error: ', result_dict)
+        return json.dumps(result_dict)
 
     if shoulder_head == 0 or hip_head == 0 or shoulder_width == 0 or hip_width == 0 or nose_to_shoulder_center == 0 or shoulder_center_to_hip_center == 0 or hip_center_to_ankle_center == 0 or whole_body_length == 0 or upper_body_lower_body == 0 :
         print(f'shoulder_head: {shoulder_head}')
