@@ -6,4 +6,4 @@ BUCKET_NAME = "circlin-plus"
 BUCKET_OUTPUT_PATH = f"{BUCKET_NAME}/bodylab_picture/output"
 
 #Analyzed image path(local)
-ANALYZED_IMAGE_PATH = "/home/ubuntu/circlinMembersApi_python/picture_analysis/img_output"
+ANALYZED_IMAGE_PATH = "/home/ubuntu/circlinMembersApi_python/bodylab_picture_analysis/picture_analysis/img_output"
