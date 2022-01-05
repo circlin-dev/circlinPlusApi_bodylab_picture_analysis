@@ -1,3 +1,6 @@
+from s3_configs import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+import boto3
+
 def error_notification_slack(userid, nickname, api, error):
   result_dict = {
     "channel": "#circlin-members-log",
@@ -10,3 +13,15 @@ def error_notification_slack(userid, nickname, api, error):
   }
 
   return result_dict
+
+
+def upload_output_to_s3(file_name, BUCKET_NAME, object_name):
+  s3 = boto3.client('s3')
+  bucket = s3.Bucket(BUCKET_NAME)
+
+  try:
+    bucket.upload_file(file_name, BUCKET_NAME, object_name)
+  except Exception as e:
+    return e
+
+  return True
