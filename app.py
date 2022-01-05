@@ -33,6 +33,9 @@ def index():
     if json.loads(result)['message'] == 'Too many people.':
         print(json.loads(result)['message'])
         return result, 400
+    elif json.loads(result)['message'] == 'Cannot find image.':
+        print(json.loads(result)['message'])
+        return result, 400
     elif json.loads(result)['message'] == 'No person detected.':
         print(json.loads(result)['message'])
         return result, 400

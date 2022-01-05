@@ -24,9 +24,11 @@ def analysis(url, uid):
 
     #1. 이미지 데이터 read
     try:
-        req = Image.open(urlopen(url))
+        req = urlopen(url)
     except: #NoneType Error or something...
         result_dict = {
+            'url': url,
+            'uid': uid,
             'message': 'Cannot find image.',
             'success': 'n'
         }
