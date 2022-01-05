@@ -1,7 +1,16 @@
+<<<<<<< HEAD
+=======
+# 기본 설정
+# detectron2 logger 설정
+>>>>>>> 424c3e5d07c4b85e742c80b90e58d819a0abdea3
 import detectron2
 from detectron2.utils.logger import setup_logger
 setup_logger()
 
+<<<<<<< HEAD
+=======
+# 자주 사용하는 라이브러리 import
+>>>>>>> 424c3e5d07c4b85e742c80b90e58d819a0abdea3
 import numpy as np
 import cv2
 import random
@@ -12,12 +21,20 @@ import ftplib
 import os
 from urllib.request import urlopen
 
+<<<<<<< HEAD
+=======
+# 자주 사용하는 detectron2 유틸 import
+>>>>>>> 424c3e5d07c4b85e742c80b90e58d819a0abdea3
 from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
 from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog
 
+<<<<<<< HEAD
 
+=======
+#본 코드의 이미지 처리는 CPU로 처리함(GPU 및 CUDA가 이 VM에 설치되어있지 않음).
+>>>>>>> 424c3e5d07c4b85e742c80b90e58d819a0abdea3
 def analysis(dir, targetDir, inputFileName):
     start_time = time.time()
 
