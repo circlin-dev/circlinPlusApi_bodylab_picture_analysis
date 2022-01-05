@@ -1,29 +1,24 @@
-# 기본 설정
-# detectron2 logger 설정
-import detectron2
-from detectron2.utils.logger import setup_logger
-setup_logger()
-
-# 자주 사용하는 라이브러리 import
 import numpy as np
 import cv2
-import random
 import time
 import datetime
 import json
-import ftplib
 import os
 from urllib.request import urlopen
+from global_things.variables import BUCKET_NAME, BUCKET_OUTPUT_PATH, ANALYZED_IMAGE_PATH, SLACK_NOTIFICATION_WEBHOOK
+import boto3
 
-# 자주 사용하는 detectron2 유틸 import
 # 출력 형식에 관한 자세한 내용은 다음 주소를 참고하세요: # https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
 from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
 from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog
+from detectron2 import model_zoo
+from detectron2.utils.logger import setup_logger
+setup_logger()
 
 #본 코드의 이미지 처리는 CPU로 처리함(GPU 및 CUDA가 이 VM에 설치되어있지 않음).
-def analysis(url, uid, feedPk):
+def analysis(url, uid):
     start_time = time.time()
 
     #1. 이미지 데이터 read
@@ -31,7 +26,7 @@ def analysis(url, uid, feedPk):
         req = urlopen(url)
     except: #NoneType Error or something...
         result_dict = {
-            'message': 'Unacceptable file extension.',
+            'message': 'Cannot find image.',
             'success': 'n'
         }
         print(result_dict)
@@ -45,7 +40,8 @@ def analysis(url, uid, feedPk):
     cfg_Seg = get_cfg() # Segmentation용 configuration 추가
     cfg_Seg.MODEL.DEVICE = 'cpu'
     cfg_Seg.merge_from_list(['MODEL.DEVICE','cpu'])  #이 코드를 추가하시면 cpu모드로 구동하게 됩니다.
-    cfg_Seg.merge_from_file("/var/www/detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml") #cd detectron2 로 경로 변경한 경우 이것으로 실행.
+    #cfg_Seg.merge_from_file("/var/www/detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml") #cd detectron2 로 경로 변경한 경우 이것으로 실행.
+    cfg_Seg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
     cfg_Seg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set threshold for this mdoel
 
     #detectron2 model zoo에서 모델 선택(다양한 모델을 사용할 수 있음)
@@ -67,22 +63,6 @@ def analysis(url, uid, feedPk):
     person_Seg = outputs_Seg['instances'][outputs_Seg['instances'].pred_classes == 0]
     print("Detected persons: ", len(person_Seg))
     print("Detected persons information: ", person_Seg)
-
-    # if len(person_Seg.pred_classes) > 1:
-    #     result_dict = {
-    #         'message': 'Too many people.',
-    #         'success': 'n'
-    #     }
-    #     print('Person error: ', result_dict)
-    #     return json.dumps(result_dict)
-    # elif len(person_Seg.pred_classes) == 0:
-    #     result_dict = {
-    #         'message': 'No person detected.',
-    #         'success': 'n'
-    #     }
-    #     return json.dumps(result_dict)
-    # else:
-    #     pass
 
     if len(person_Seg) == 1:
         #Remain only one highest probability of person.
@@ -140,7 +120,8 @@ def analysis(url, uid, feedPk):
     cfg_Key = get_cfg() #Keypoints용 configuration 추가
     cfg_Seg.MODEL.DEVICE = 'cpu'
     cfg_Key.merge_from_list(['MODEL.DEVICE','cpu'])    #이 코드를 추가하시면 cpu모드로 구동하게 됩니다.
-    cfg_Key.merge_from_file("/var/www/detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml") # cd detectron2 로 경로 변경한 경우 이것으로 실행.
+    #cfg_Key.merge_from_file("/var/www/detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml") # cd detectron2 로 경로 변경한 경우 이것으로 실행.
+    cfg_Seg.merge_from_file(model_zoo.get_config_file("COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"))
     cfg_Key.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7  # set threshold for this model
 
     # keypoint 모델 선택(다양한 모델을 사용할 수 있음).
@@ -169,7 +150,6 @@ def analysis(url, uid, feedPk):
     #`Visualizer`를 이용하면 Keypoint 예측 결과를 손쉽게 그릴 수 있습니다.
     v_Key = Visualizer(v_Seg[:, :, ::-1], MetadataCatalog.get(cfg_Key.DATASETS.TRAIN[0]), scale=1.2)
     v_Key = v_Key.draw_instance_predictions(person_Key.to("cpu")) #20210506: outputs_Key["instances"] -> outputs_Key["instances"][0]
-    #v_Key = v_Key.get_image()[:, :, ::-1]
 
     #4. Keypoint, Segmentation으로부터 신체 비율 & 부위별 면적 계산하기
     keypoints_whole = person_Key.get('pred_keypoints') #Every keypoints on an image
@@ -323,12 +303,6 @@ def analysis(url, uid, feedPk):
     upper_body_lower_body = shoulder_center_to_hip_center + hip_center_to_ankle_center
 
     """
-    time_ymd = datetime.datetime.now().strftime('%Y%m%d') #저장하는 현재 날짜
-    #처리 결과를 '경로 + (output_회원 ID_날짜_이미지 이름)'로 이미지 파일로 저장.
-    cv2.imwrite('/var/www/detectron2/img_output/output_'+'USER_ID_'+time_ymd+'_'+img_name, v_Key.get_image()[:, :, ::-1])
-
-    print("Segmentation & Keypoints Image was saved successfully!")
-
     #6. 이미지 1장 처리에 걸리는 시간 측정(초 단위). #GPU 및 CUDA가 설치된다면 더 빠르게 가능할 것이다.
     timeEnd = time.time() - timeStart
     print("Time passed for fully processing 1 image: ",timeEnd) #현재 시각 - 시작 시간
@@ -337,34 +311,18 @@ def analysis(url, uid, feedPk):
     nt = dt.strftime('%Y%m%d%H%M%S')
 
     output = cv2.resize(v_Key.get_image()[:, :, ::-1], dsize=(0, 0), fx=0.3, fy=0.3, interpolation=cv2.INTER_LINEAR) ######아래 줄과 바꿔치기하기
-    cv2.imwrite('/var/www/detectron2/img_output/'+uid+'_'+nt+'.png', output)  ######아래 줄과 바꿔치기하기  #_resized.png 는 .png로 바꾸기
+    if uid not in os.listdir(f"{ANALYZED_IMAGE_PATH}"):
+        os.makedirs(f"{ANALYZED_IMAGE_PATH}/{uid}")
+    file_name =  f'{uid}_{nt}.jpg'
+    analyzed_image = f'{ANALYZED_IMAGE_PATH}/{uid}/{file_name}'
+    cv2.imwrite(analyzed_image, output)
 
-    #7. 써클인 이미지 서버에 분석 결과 이미지 원본 전송
-    #내 로컬 폴더에 저장된 이미지 경로 확인
-    outpath = './'
-    outfile = uid+'_'+nt+'.png'
+    #7. S3에 분석 결과 이미지(output_path) 원본 저장
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(BUCKET_NAME)
 
-    #폴더가 없으면 만든다.
-    if not os.path.isdir(outpath):
-        os.makedirs(outpath)
-
-    name = outpath + outfile #./uid_nt.png
-    ftp = ftplib.FTP()
-    ftp.connect("cyld20181.speedgabia.com", 21)
-    ftp.login("cyld20181", "teamcyld2018!")
-
-    try:
-        ftp.mkd('./Image/AI_COMPARE/'+uid+'/') #ftp에서 폴더 생성
-    except:
-        1+1
-
-    ftp.cwd('./Image/AI_COMPARE/'+uid+'/') #ftp에서 해당 폴더로 이동
-    myfile = open('/var/www/detectron2/img_output/'+outfile, 'rb')
-    print('myfile: ', myfile)
-    ftp.storbinary('STOR ' +outfile, myfile) # storbinary(파일 이름 설정(outfile), 실제로 보내질 경로 및 파일명(myfile))
-    myfile.close()
-    ftp.close()
-    print("complete!")
+    upload_to_s3 = f"{BUCKET_OUTPUT_PATH}/{uid}/{file_name}"
+    bucket.upload_file(upload_to_s3)
 
     if shoulder_head == 0 or hip_head == 0 or shoulder_width == 0 or hip_width == 0 or nose_to_shoulder_center == 0 or shoulder_center_to_hip_center == 0 or hip_center_to_ankle_center == 0 or whole_body_length == 0 or upper_body_lower_body == 0 :
         print(f'shoulder_head: {shoulder_head}')
@@ -390,9 +348,8 @@ def analysis(url, uid, feedPk):
     result_dict = {
     'success': 'y',
     'original_img_url': url,
-    'img_server_url':  "https://cyld20181.speedgabia.com/Image/AI_COMPARE/"+uid+"/"+outfile,
+    'output_url': f'https://circlin-plus.s3.ap-northeast-2.amazonaws.com/bodylab_picture/output/{uid}/{file_name}',
     'user_id': uid, #그대로 전송
-    'feedPk': feedPk,   #그대로 전송
     'shoulder_ratio': shoulder_head,
     'hip_ratio': hip_head,
     'shoulder_width': shoulder_width,
@@ -400,7 +357,7 @@ def analysis(url, uid, feedPk):
     'nose_to_shoulder_center': nose_to_shoulder_center, #코~가슴 어깨 중앙 = h1
     'shoulder_center_to_hip_center': shoulder_center_to_hip_center, #어깨 중앙 ~ 골반 중앙 = h2
     'hip_center_to_ankle_center': hip_center_to_ankle_center, #골반 중앙 ~ 발목 중앙 = h3
-    'whole_body_length': whole_body_length, #전신 길기 = h1 + h2 + h3
+    'whole_body_length': whole_body_length, #전신 길이 = h1 + h2 + h3
     'upper_body_lower_body': upper_body_lower_body, #상체 + 하체 길이 = h2 + h3
     'message': 'Done analysis' #성공 혹은 실패 여부
     }
