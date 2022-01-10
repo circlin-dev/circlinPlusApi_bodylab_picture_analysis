@@ -135,3 +135,4 @@ dmypy.json
 # Unnecessary directories
 .idea/
 .DS_Store
+execution_log.log
