@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 import json
+import logging
 
 from global_things.variables import SLACK_NOTIFICATION_WEBHOOK
 from global_things.functions import error_notification_slack
@@ -8,6 +9,13 @@ from bodylab_picture_analyze import analysis
 
 app = Flask(__name__)
 CORS(app) #For Cross-Domain problem
+
+APP_ROOT="/home/ubuntu/circlinMembersApi_python/bodylab_picture_analysis"
+logging.basicConfig(filename=f'{APP_ROOT}/execution_log.log', filemode='a+', format=' [%(filename)s:%(lineno)s:%(funcName)s()]- %(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+gunicorn_logger = logging.getLogger('gunicorn.error')
+app.logger.handlers = gunicorn_logger.handlers
+app.logger.setLevel(gunicorn_logger.level)
+
 
 #Input(써클인에서 전송하는 파라미터): 이미지(파일 제목), 유저 ID
 #Output: 이미지 처리 결과 파일(output_'유저 ID'_'현재 연월일'_'파일명.확장자'), 신체 비율 수치
