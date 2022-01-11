@@ -25,48 +25,47 @@ def index():
     #Input: 이미지 주소, 유저 정보(id)
 
     #파라미터 읽어들이기
-    req = request.form
-    return req, 200
-    # url = req.get('url')   #이미지 주소
-    # user_id = req.get('user_id')   #회원 id
-    #
-    # result = analysis(url, user_id)
-    # result = json.loads(result)
-    # result_message = result['message']
-    # if result_message == 'Too many people.':
-    #     print(result_message)
-    #     slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
-    #     return result, 400
-    # elif result_message == 'Cannot find image.':
-    #     print(result_message)
-    #     slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
-    #     return result, 400
-    # elif result_message == 'No person detected.':
-    #     print(result_message)
-    #     slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
-    #     return result, 400
-    # elif result_message == 'Unacceptable file extension.':
-    #     print(result_message)
-    #     slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
-    #     return result, 400
-    # elif result_message == 'Bad pose. Unable to detect the whole body joints.':
-    #     print(result_message)
-    #     slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
-    #     return result, 400
-    # elif result_message == 'Bad pose. Head or hip width is 0.':
-    #     print(result_message)
-    #     slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
-    #     return result, 400
-    # elif result_message == 'Bad pose. Invalid body length.':
-    #     print(result_message)
-    #     slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
-    #     return result, 400
-    # elif result_message == 'Error while upload output image into S3 for original image.':
-    #     print(result_message)
-    #     slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
-    #     return result, 500
-    # else:
-    #     return result, 200
+    req = request.get_json()
+    url = req.get('url')   #이미지 주소
+    user_id = req.get('user_id')   #회원 id
+
+    result = analysis(url, user_id)
+    result = json.loads(result)
+    result_message = result['message']
+    if result_message == 'Too many people.':
+        print(result_message)
+        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        return result, 400
+    elif result_message == 'Cannot find image.':
+        print(result_message)
+        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        return result, 400
+    elif result_message == 'No person detected.':
+        print(result_message)
+        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        return result, 400
+    elif result_message == 'Unacceptable file extension.':
+        print(result_message)
+        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        return result, 400
+    elif result_message == 'Bad pose. Unable to detect the whole body joints.':
+        print(result_message)
+        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        return result, 400
+    elif result_message == 'Bad pose. Head or hip width is 0.':
+        print(result_message)
+        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        return result, 400
+    elif result_message == 'Bad pose. Invalid body length.':
+        print(result_message)
+        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        return result, 400
+    elif result_message == 'Error while upload output image into S3 for original image.':
+        print(result_message)
+        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        return result, 500
+    else:
+        return result, 200
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", debug=True)
