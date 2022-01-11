@@ -25,8 +25,9 @@ def index():
     #Input: 이미지 주소, 유저 정보(id)
 
     #파라미터 읽어들이기
-    url = request.form.get('url')   #이미지 주소
-    user_id = request.form.get('user_id')   #회원 id
+    req = request.get_json()
+    url = req['url']   #이미지 주소
+    user_id = req['user_id']   #회원 id
 
     result = analysis(url, user_id)
     result = json.loads(result)
