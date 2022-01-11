@@ -5,7 +5,7 @@ import datetime
 import json
 import os
 from urllib.request import urlopen
-from global_things.variables import BUCKET_NAME, BUCKET_OUTPUT_PATH, ANALYZED_IMAGE_PATH, SLACK_NOTIFICATION_WEBHOOK
+from global_things.variables import BUCKET_NAME, BUCKET_OUTPUT_PATH, ANALYZED_IMAGE_PATH
 from global_things.functions import upload_output_to_s3
 
 # 출력 형식에 관한 자세한 내용은 다음 주소를 참고하세요: # https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
@@ -325,7 +325,7 @@ def analysis(url, uid):
         pass
     else:
         result_dict = {
-            'message': 'Image upload error.',
+            'message': f'Error while upload output image into S3 for original_image.',
             'success': 'n'
         }
         print('Pose error: ', result_dict)
