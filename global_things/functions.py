@@ -1,4 +1,4 @@
-from variables import SLACK_NOTIFICATION_WEBHOOK
+from constants import SLACK_NOTIFICATION_WEBHOOK
 import boto3
 
 import requests

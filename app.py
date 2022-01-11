@@ -61,7 +61,7 @@ def index():
         print(result_message)
         slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
-    elif result_message == 'Error while upload output image into S3 for original_image.':
+    elif result_message == 'Error while upload output image into S3 for original image.':
         print(result_message)
         slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 500
