@@ -18,7 +18,7 @@ from detectron2.utils.logger import setup_logger
 setup_logger()
 
 #본 코드의 이미지 처리는 CPU로 처리함(GPU 및 CUDA가 이 VM에 설치되어있지 않음).
-def analysis(url, uid):
+def analysis(url, user_id):
     start_time = time.time()
 
     #1. 이미지 데이터 read
@@ -27,7 +27,7 @@ def analysis(url, uid):
     except: #NoneType Error or something...
         result_dict = {
             'url': url,
-            'uid': uid,
+            'user_id': user_id,
             'message': 'Cannot find image.',
             'success': 'n'
         }
@@ -313,14 +313,14 @@ def analysis(url, uid):
     nt = dt.strftime('%Y%m%d%H%M%S')
 
     output = cv2.resize(v_Key.get_image()[:, :, ::-1], dsize=(0, 0), fx=0.3, fy=0.3, interpolation=cv2.INTER_LINEAR) ######아래 줄과 바꿔치기하기
-    if str(uid) not in os.listdir(f"{ANALYZED_IMAGE_PATH}"):
-        os.makedirs(f"{ANALYZED_IMAGE_PATH}/{uid}")
-    file_name =  f'{uid}_{nt}.jpg'
-    analyzed_image = f'{ANALYZED_IMAGE_PATH}/{uid}/{file_name}'
+    if str(user_id) not in os.listdir(f"{ANALYZED_IMAGE_PATH}"):
+        os.makedirs(f"{ANALYZED_IMAGE_PATH}/{user_id}")
+    file_name =  f'{user_id}_{nt}.jpg'
+    analyzed_image = f'{ANALYZED_IMAGE_PATH}/{user_id}/{file_name}'
     cv2.imwrite(analyzed_image, output)
 
     #7. S3에 분석 결과 이미지(output_path) 원본 저장
-    object_name = f"{BUCKET_OUTPUT_PATH}/{uid}/{file_name}"
+    object_name = f"{BUCKET_OUTPUT_PATH}/{user_id}/{file_name}"
     if upload_output_to_s3(analyzed_image, BUCKET_NAME, object_name) == True:
         pass
     else:
@@ -355,8 +355,8 @@ def analysis(url, uid):
     result_dict = {
     'success': 'y',
     'original_img_url': url,
-    'output_url': f'https://circlin-plus.s3.ap-northeast-2.amazonaws.com/bodylab_picture/output/{uid}/{file_name}',
-    'user_id': uid, #그대로 전송
+    'output_url': f'https://circlin-plus.s3.ap-northeast-2.amazonaws.com/bodylab_picture/output/{user_id}/{file_name}',
+    'user_id': user_id, #그대로 전송
     'shoulder_ratio': shoulder_head,
     'hip_ratio': hip_head,
     'shoulder_width': shoulder_width,
