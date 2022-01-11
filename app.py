@@ -23,12 +23,10 @@ def testing():
 def index():
     print('Accessed to test server.')
     #Input: 이미지 주소, 유저 정보(id)
-    # req = request.json
-    # print('Request: ', req)  #req: ImmutableMultiDict
 
     #파라미터 읽어들이기
-    url = request.get('url')   #이미지 주소
-    user_id = request.get('user_id')   #회원 id
+    url = request.form.get('url')   #이미지 주소
+    user_id = request.form.get('user_id')   #회원 id
 
     result = analysis(url, user_id)
     result = json.loads(result)
