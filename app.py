@@ -28,9 +28,9 @@ def index():
 
     #파라미터 읽어들이기
     url = req.get('url')   #이미지 주소
-    user_id = req.get('id')   #회원 id
+    user_id = req.get('user_id')   #회원 id
 
-    result = analysis(url, id)
+    result = analysis(url, user_id)
     result = json.loads(result)
     result_message = result['message']
     if result_message == 'Too many people.':
