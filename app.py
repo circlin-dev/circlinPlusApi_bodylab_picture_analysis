@@ -25,9 +25,17 @@ def index():
     #Input: 이미지 주소, 유저 정보(id)
 
     #파라미터 읽어들이기
-    req = request.get_json()
-    url = req.get('url')   #이미지 주소
-    user_id = req.get('user_id')   #회원 id
+    try:
+        req = request.get_json()
+        url = req.get('url')   #이미지 주소
+        user_id = req.get('user_id')   #회원 id
+    except Exception as e:
+        slack_error_notification(api='/', error_log=f"Error while handling request: {e}")
+        result_dict = {
+            'message': 'Error while handling request.',
+            'success': 'n'
+        }
+        return result_dict, 500
 
     result = analysis(url, user_id)
     result = json.loads(result)
