@@ -19,7 +19,7 @@ app.logger.setLevel(gunicorn_logger.level)
 def testing():
     return "Hello, Circlin!!!"
 
-@app.route('/', methods = ['POST'])
+@app.route('/analysis', methods = ['POST'])
 def index():
     print('Accessed to test server.')
     #Input: 이미지 주소, 유저 정보(id)
@@ -30,7 +30,7 @@ def index():
         url = req.get('url')   #이미지 주소
         user_id = req.get('user_id')   #회원 id
     except Exception as e:
-        slack_error_notification(api='/', error_log=f"Error while handling request: {e}")
+        slack_error_notification(api='/analysis', error_log=f"Error while handling request: {e}")
         result_dict = {
             'message': 'Error while handling request.',
             'success': 'n'
@@ -42,35 +42,35 @@ def index():
     result_message = result['message']
     if result_message == 'Too many people.':
         print(result_message)
-        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'Cannot find image.':
         print(result_message)
-        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'No person detected.':
         print(result_message)
-        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'Unacceptable file extension.':
         print(result_message)
-        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'Bad pose. Unable to detect the whole body joints.':
         print(result_message)
-        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'Bad pose. Head or hip width is 0.':
         print(result_message)
-        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'Bad pose. Invalid body length.':
         print(result_message)
-        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'Error while upload output image into S3 for original image.':
         print(result_message)
-        slack_error_notification(user_id=user_id, api='/', error_log=f"Error while analyzing original image '{url}': {result_message}")
+        slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 500
     else:
         return result, 200
