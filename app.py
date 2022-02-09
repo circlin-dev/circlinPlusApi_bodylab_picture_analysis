@@ -9,7 +9,7 @@ import logging
 app = Flask(__name__)
 CORS(app) #For Cross-Domain problem
 
-APP_ROOT="/home/ubuntu/circlinMembersApi_python/bodylab_picture_analysis"
+APP_ROOT = "/home/ubuntu/circlinMembersApi_python/bodylab_picture_analysis"
 logging.basicConfig(filename=f'{APP_ROOT}/execution_log.log', filemode='a+', format=' [%(filename)s:%(lineno)s:%(funcName)s()]- %(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 gunicorn_logger = logging.getLogger('gunicorn.error')
 app.logger.handlers = gunicorn_logger.handlers
