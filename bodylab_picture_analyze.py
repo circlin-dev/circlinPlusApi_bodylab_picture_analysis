@@ -131,8 +131,8 @@ def analysis(url, user_id):
     cfg_key.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7  # set threshold for this model
 
     # keypoint 모델 선택(다양한 모델을 사용할 수 있음).
-    # cfg_key.MODEL.WEIGHTS = "detectron2://COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x/137849621/model_final_a6e10b.pkl"
-    cfg_key.MODEL.WEIGHTS(model_zoo.get_checkpoint_url("COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"))
+    cfg_key.MODEL.WEIGHTS = "detectron2://COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x/137849621/model_final_a6e10b.pkl"
+    # cfg_key.MODEL.WEIGHTS(model_zoo.get_checkpoint_url("COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"))
     predictor_key = DefaultPredictor(cfg_key)
     outputs_key = predictor_key(v_seg)
 
