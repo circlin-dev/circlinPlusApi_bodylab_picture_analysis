@@ -43,12 +43,13 @@ def analysis(url, user_id):
     cfg_seg = get_cfg()  # Segmentation 을 위한 configuration 추가
     cfg_seg.MODEL.DEVICE = 'cpu'
     cfg_seg.merge_from_list(['MODEL.DEVICE', 'cpu'])  #이 코드를 추가하시면 cpu모드로 구동하게 됩니다.
-    # cfg_seg.merge_from_file("/var/www/detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml") #cd detectron2 로 경로 변경한 경우 이것으로 실행.
+    # cfg_seg.merge_from_file("/var/www/detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
     cfg_seg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
     cfg_seg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set threshold for this model.
 
     # detectron2 model zoo에서 모델 선택(다양한 모델을 사용할 수 있음)
-    cfg_seg.MODEL.WEIGHTS = "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"
+    # cfg_seg.MODEL.WEIGHTS = "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"
+    cfg_seg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
     predictor_seg = DefaultPredictor(cfg_seg)
 
     try:
@@ -128,7 +129,8 @@ def analysis(url, user_id):
     cfg_key.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7  # set threshold for this model
 
     # keypoint 모델 선택(다양한 모델을 사용할 수 있음).
-    cfg_key.MODEL.WEIGHTS = "detectron2://COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x/137849621/model_final_a6e10b.pkl"
+    # cfg_key.MODEL.WEIGHTS = "detectron2://COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x/137849621/model_final_a6e10b.pkl"
+    cfg_key.MODEL.WEIGHTS(model_zoo.get_checkpoint_url("COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"))
     predictor_key = DefaultPredictor(cfg_key)
     outputs_key = predictor_key(v_seg)
 
