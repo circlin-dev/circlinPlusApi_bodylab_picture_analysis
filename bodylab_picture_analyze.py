@@ -50,8 +50,8 @@ def analysis(url, user_id):
     cfg_seg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set threshold for this model.
 
     # detectron2 model zoo에서 모델 선택(다양한 모델을 사용할 수 있음)
-    # cfg_seg.MODEL.WEIGHTS = "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"
-    cfg_seg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
+    cfg_seg.MODEL.WEIGHTS = "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"
+    # cfg_seg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
     predictor_seg = DefaultPredictor(cfg_seg)
 
     try:
