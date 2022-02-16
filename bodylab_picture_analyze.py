@@ -55,9 +55,9 @@ def analysis(url, user_id):
     try:
         outputs_seg = predictor_seg(im)
         print("Detected classes: ", outputs_seg["instances"].pred_classes)
-    except:
+    except Exception as e:
         result_dict = {
-            'message': 'Unacceptable file extension.',
+            'message': f'Unacceptable file extension: {str(e)}',
             'result': False
         }
         print(result_dict)
@@ -80,7 +80,7 @@ def analysis(url, user_id):
 
         # `Visualizer`를 이용하면 Segmentation 예측 결과를 손쉽게 그릴 수 있습니다.
         v_seg = Visualizer(im[:, :, ::-1], MetadataCatalog.get(cfg_seg.DATASETS.TRAIN[0]), scale=1.2)
-        v_seg = v_seg.draw_instance_predictions(person_seg_trustful.to("cpu"))  # 20210506: outputs_Seg["instances"] -> outputs_Seg["instances"][0]
+        v_seg = v_seg.draw_instance_predictions(person_seg_trustful.to("cpu"))
         v_seg = v_seg.get_image()[:, :, ::-1]   # v_Seg 변수에 Segmentation 결과를 저장하고, keypoints를 그리기 위해 다음 섹션에서 사용합니다.
     elif len(person_seg) > 1:
         score_gap = person_seg.scores[0] - person_seg.scores[1]  # 최대, 차대 점수 차
@@ -97,7 +97,7 @@ def analysis(url, user_id):
 
             # `Visualizer`를 이용하면 Segmentation 예측 결과를 손쉽게 그릴 수 있습니다.
             v_seg = Visualizer(im[:, :, ::-1], MetadataCatalog.get(cfg_seg.DATASETS.TRAIN[0]), scale=1.2)
-            v_seg = v_seg.draw_instance_predictions(person_seg_trustful.to("cpu"))    # 20210506: outputs_Seg["instances"] -> outputs_Seg["instances"][0]
+            v_seg = v_seg.draw_instance_predictions(person_seg_trustful.to("cpu"))
             v_seg = v_seg.get_image()[:, :, ::-1]  # v_Seg 변수에 Segmentation 결과를 저장하고, keypoints를 그리기 위해 다음 섹션에서 사용합니다.
         else:
             # 사람 간 형태가 모두 확실하다고 가정. ==> 검출된 모든 사람에 Segmentation을 그린다.
@@ -123,7 +123,7 @@ def analysis(url, user_id):
     # 3-2. KeyPoints detection
     cfg_key = get_cfg()  # Keypoints용 configuration 추가
     cfg_seg.MODEL.DEVICE = 'cpu'
-    cfg_key.merge_from_list(['MODEL.DEVICE','cpu'])    # 이 코드를 추가하시면 cpu모드로 구동하게 됩니다.
+    cfg_key.merge_from_list(['MODEL.DEVICE', 'cpu'])    # 이 코드를 추가하시면 cpu모드로 구동하게 됩니다.
     # cfg_key.merge_from_file("/var/www/detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml") # cd detectron2 로 경로 변경한 경우 이것으로 실행.
     cfg_key.merge_from_file(model_zoo.get_config_file("COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"))
     cfg_key.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7  # set threshold for this model
