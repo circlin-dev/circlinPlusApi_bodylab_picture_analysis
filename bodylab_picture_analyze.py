@@ -26,8 +26,8 @@ def analysis(url, user_id):
     # 1. 이미지 데이터 read
     try:
         req = urlopen(url)
-        # arr = np.asarray(bytearray(req.read()), dtype="uint8")
-        arr = np.asarray(bytearray(requests.get(url).content), dtype=np.uint8)
+        arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
+        # arr = np.asarray(bytearray(requests.get(url).content), dtype=np.uint8)
         im = cv2.imdecode(arr, -1)
         # im = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     except Exception as e:
