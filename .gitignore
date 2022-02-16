@@ -129,7 +129,7 @@ dmypy.json
 .pyre/
 
 # Directories storing files.
-./picture_analysis
+./bodylab
 ./global_things/s3_configs.py
 bodylab_picture_analysis_py3.8.sock
 
