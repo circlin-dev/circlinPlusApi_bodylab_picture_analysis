@@ -49,11 +49,11 @@ def analysis(url, user_id):
 
     # detectron2 model zoo에서 모델 선택(다양한 모델을 사용할 수 있음)
     cfg_seg.MODEL.WEIGHTS = "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"
-    predictor_Seg = DefaultPredictor(cfg_seg)
+    predictor_seg = DefaultPredictor(cfg_seg)
 
     try:
-        outputs_Seg = predictor_Seg(im)
-        print("Detected classes: ", outputs_Seg["instances"].pred_classes)
+        outputs_seg = predictor_seg(im)
+        print("Detected classes: ", outputs_seg["instances"].pred_classes)
     except:
         result_dict = {
             'message': 'Unacceptable file extension.',
@@ -63,7 +63,7 @@ def analysis(url, user_id):
         return json.dumps(result_dict)
 
     # Copy outputs_Seg and filter 'person' class only.
-    person_seg = outputs_Seg['instances'][outputs_Seg['instances'].pred_classes == 0]
+    person_seg = outputs_seg['instances'][outputs_seg['instances'].pred_classes == 0]
     print("Detected persons: ", len(person_seg))
     print("Detected persons information: ", person_seg)
 
