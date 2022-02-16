@@ -5,7 +5,7 @@ import datetime
 import json
 import os
 from urllib.request import urlopen
-from global_things.constants import BUCKET_NAME, BUCKET_KEYPOINT_PATH, KEYPOINT_IMAGE_PATH, BUCKET_ATFLEE_PATH, ATFLEE_IMAGE_PATH
+from global_things.constants import AMAZON_URL, BUCKET_NAME, BUCKET_BODY_IMAGE_OUTPUT_PATH, BODY_IMAGE_OUTPUT_PATH
 from global_things.functions import upload_output_to_s3
 
 # 출력 형식에 관한 자세한 내용은 다음 주소를 참고하세요: # https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
@@ -30,7 +30,7 @@ def analysis(url, user_id):
             'url': url,
             'user_id': user_id,
             'message': 'Cannot find image.',
-            'success': 'n'
+            'result': False
         }
         print(result_dict)
         return json.dumps(result_dict)
@@ -57,7 +57,7 @@ def analysis(url, user_id):
     except:
         result_dict = {
             'message': 'Unacceptable file extension.',
-            'success': 'n'
+            'result': False
         }
         print(result_dict)
         return json.dumps(result_dict)
@@ -113,7 +113,7 @@ def analysis(url, user_id):
         # if len(person_Seg) == 0  ==>  Error occurs at person_Seg_trustful.
         result_dict = {
             'message': 'No person detected.',
-            'success': 'n'
+            'result': False
         }
         print(result_dict)
         return json.dumps(result_dict)
@@ -140,7 +140,7 @@ def analysis(url, user_id):
         # if len(outputs_Key['instances'].pred_classes) == 0  ==>  Error occurs at person_Key because no keypoints to draw detected.
         result_dict = {
             'message': 'No person detected.',
-            'success': 'n'
+            'result': False
         }
         print(result_dict)
         return json.dumps(result_dict)
@@ -166,7 +166,7 @@ def analysis(url, user_id):
         print("Keypoints error: len(keypoints_person) < 17")
         result_dict = {
             'message': 'Bad pose: Unable to detect the whole body joints.',
-            'success': 'n'
+            'result': False
         }
         return json.dumps(result_dict)
     elif howManyKeyPoints == 17:
@@ -175,14 +175,14 @@ def analysis(url, user_id):
     if howManyPerson > 1:
         result_dict = {
             'message': 'Too many people.',
-            'success': 'n'
+            'result': False
         }
         print('Person error: ', result_dict)
         return json.dumps(result_dict)
     elif howManyPerson == 0:
         result_dict = {
             'message': 'No person detected.',
-            'success': 'n'
+            'result': False
         }
         print('Person error: ', result_dict)
         return json.dumps(result_dict)
@@ -277,8 +277,8 @@ def analysis(url, user_id):
     # try:
     hip_width = abs(left_hip_x - right_hip_x)  # type: torch.tensor
     print(hip_width)
-    hip_width = hip_width.item() # 형변환: torch.tensor -> float
-    hip_width = round(hip_width, 2) # 소수점 둘째 자리까지만 출력
+    hip_width = hip_width.item()  # 형변환: torch.tensor -> float
+    hip_width = round(hip_width, 2)  # 소수점 둘째 자리까지만 출력
 
     try:
         shoulder_head = shoulder_width / head_width # 어깨 너비가 커질수록 shoulder_head는 거진다.
@@ -288,7 +288,7 @@ def analysis(url, user_id):
     except:
         result_dict = {
             'message': 'Bad pose. Head or hip width is 0',
-            'success': 'n'
+            'result': True
         }
         print('Pose error: ', result_dict)
         return json.dumps(result_dict)
@@ -314,23 +314,26 @@ def analysis(url, user_id):
     nt = dt.strftime('%Y%m%d%H%M%S')
 
     output = cv2.resize(v_key.get_image()[:, :, ::-1], dsize=(0, 0), fx=0.3, fy=0.3, interpolation=cv2.INTER_LINEAR)
-    if str(user_id) not in os.listdir(f"{KEYPOINT_IMAGE_PATH}"):
-        os.makedirs(f"{KEYPOINT_IMAGE_PATH}/{user_id}")
+    if str(user_id) not in os.listdir(f"{BODY_IMAGE_OUTPUT_PATH}"):
+        os.makedirs(f"{BODY_IMAGE_OUTPUT_PATH}/{user_id}")
     file_name = f'{user_id}_{nt}.jpg'
-    analyzed_image = f'{KEYPOINT_IMAGE_PATH}/{user_id}/{file_name}'
-    cv2.imwrite(analyzed_image, output)
+    local_image_path = f'{BODY_IMAGE_OUTPUT_PATH}/{user_id}/{file_name}'
+    cv2.imwrite(local_image_path, output)
 
     # 7. S3에 분석 결과 이미지(output_path) 원본 저장
-    object_name = f"{BUCKET_KEYPOINT_PATH}/{user_id}/{file_name}"
-    if upload_output_to_s3(analyzed_image, BUCKET_NAME, object_name) is True:
+    object_name = f"{BUCKET_BODY_IMAGE_OUTPUT_PATH}/{user_id}/{file_name}"
+    if upload_output_to_s3(local_image_path, BUCKET_NAME, object_name) is True:
         pass
     else:
         result_dict = {
             'message': f'Error while upload output image into S3 for original image.',
-            'success': 'n'
+            'result': False
         }
         print('Pose error: ', result_dict)
         return json.dumps(result_dict)
+    s3_path_body_output = f"{AMAZON_URL}/{object_name}"
+    if os.path.exists(local_image_path):
+        os.remove(local_image_path)
 
     if shoulder_head == 0 or hip_head == 0 or shoulder_width == 0 or hip_width == 0 or nose_to_shoulder_center == 0 or shoulder_center_to_hip_center == 0 or hip_center_to_ankle_center == 0 or whole_body_length == 0 or upper_body_lower_body == 0:
         print(f'shoulder_head: {shoulder_head}')
@@ -344,7 +347,7 @@ def analysis(url, user_id):
         print(f'upper_body_lower_body: {upper_body_lower_body}')
         result_dict = {
             'message': 'Bad pose. Invalid body length.',
-            'success': 'n'
+            'result': False
         }
         print('Pose error: ', result_dict)
         return json.dumps(result_dict)
@@ -353,10 +356,9 @@ def analysis(url, user_id):
 
     # 8. 써클인 서버에 분석 결과 이미지 주소 + 수치 데이터 + Input 시 받은 회원 정보 전송
     result_dict = {
-        'success': 'y',
+        'result': True,
         'original_img_url': url,
-        'output_url': f'https://circlin-plus.s3.ap-northeast-2.amazonaws.com/bodylab_picture/output/{user_id}/{file_name}',
-        'user_id': user_id,  # 그대로 전송
+        'output_url': s3_path_body_output,
         'shoulder_ratio': shoulder_head,
         'hip_ratio': hip_head,
         'shoulder_width': shoulder_width,
