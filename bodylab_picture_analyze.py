@@ -25,18 +25,18 @@ def analysis(url, user_id):
     # 1. 이미지 데이터 read
     try:
         req = urlopen(url)
+        arr = np.asarray(bytearray(req.read()), dtype="uint8")
+        # im = cv2.imdecode(arr, -1)
+        im = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     except Exception as e:
         result_dict = {
             'url': url,
             'user_id': user_id,
-            'message': 'Cannot find image.',
+            'message': f'Cannot find image({str(e)})',
             'result': False
         }
         print(result_dict)
         return json.dumps(result_dict)
-
-    arr = np.asarray(bytearray(req.read()), dtype="uint8")
-    im = cv2.imdecode(arr, -1)
 
     # 3. Segmentation & KeyPoints extraction.
     # 3-1. Segmentation
