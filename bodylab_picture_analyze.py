@@ -4,6 +4,7 @@ import time
 import datetime
 import json
 import os
+import requests
 from urllib.request import urlopen
 from global_things.constants import AMAZON_URL, BUCKET_NAME, BUCKET_BODY_IMAGE_OUTPUT_PATH, BODY_IMAGE_OUTPUT_PATH
 from global_things.functions import upload_output_to_s3
@@ -25,9 +26,10 @@ def analysis(url, user_id):
     # 1. 이미지 데이터 read
     try:
         req = urlopen(url)
-        arr = np.asarray(bytearray(req.read()), dtype="uint8")
-        # im = cv2.imdecode(arr, -1)
-        im = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+        # arr = np.asarray(bytearray(req.read()), dtype="uint8")
+        arr = np.asarray(bytearray(requests.get(url).content), dtype=np.uint8)
+        im = cv2.imdecode(arr, -1)
+        # im = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     except Exception as e:
         result_dict = {
             'url': url,
