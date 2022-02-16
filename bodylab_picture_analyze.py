@@ -35,7 +35,7 @@ def analysis(url, user_id):
         print(result_dict)
         return json.dumps(result_dict)
 
-    arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
+    arr = np.asarray(bytearray(req.read()), dtype="uint8")
     im = cv2.imdecode(arr, -1)
 
     # 3. Segmentation & KeyPoints extraction.
