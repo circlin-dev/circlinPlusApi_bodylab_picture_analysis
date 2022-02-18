@@ -27,9 +27,7 @@ def analysis(url, user_id):
     try:
         req = urlopen(url)
         arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-        # arr = np.asarray(bytearray(requests.get(url).content), dtype=np.uint8)
         im = cv2.imdecode(arr, -1)
-        # im = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     except Exception as e:
         result_dict = {
             'url': url,
@@ -51,7 +49,6 @@ def analysis(url, user_id):
 
     # detectron2 model zoo에서 모델 선택(다양한 모델을 사용할 수 있음)
     cfg_seg.MODEL.WEIGHTS = "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"
-    # cfg_seg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
     predictor_seg = DefaultPredictor(cfg_seg)
 
     try:
@@ -132,7 +129,6 @@ def analysis(url, user_id):
 
     # keypoint 모델 선택(다양한 모델을 사용할 수 있음).
     cfg_key.MODEL.WEIGHTS = "detectron2://COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x/137849621/model_final_a6e10b.pkl"
-    # cfg_key.MODEL.WEIGHTS(model_zoo.get_checkpoint_url("COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"))
     predictor_key = DefaultPredictor(cfg_key)
     outputs_key = predictor_key(v_seg)
 
@@ -307,7 +303,7 @@ def analysis(url, user_id):
     # 전신 길이 = h1 + h2 + h3
     whole_body_length = nose_to_shoulder_center + shoulder_center_to_hip_center + hip_center_to_ankle_center
     # 상체 + 하체 길이 = h2 + h3
-    upper_body_lower_body = shoulder_center_to_hip_center + hip_center_to_ankle_center
+    shoulder_center_to_ankle_center = shoulder_center_to_hip_center + hip_center_to_ankle_center
 
     """
     #6. 이미지 1장 처리에 걸리는 시간 측정(초 단위). #GPU 및 CUDA가 설치된다면 더 빠르게 가능할 것이다.
@@ -339,7 +335,7 @@ def analysis(url, user_id):
     if os.path.exists(local_image_path):
         os.remove(local_image_path)
 
-    if shoulder_head == 0 or hip_head == 0 or shoulder_width == 0 or hip_width == 0 or nose_to_shoulder_center == 0 or shoulder_center_to_hip_center == 0 or hip_center_to_ankle_center == 0 or whole_body_length == 0 or upper_body_lower_body == 0:
+    if shoulder_head == 0 or hip_head == 0 or shoulder_width == 0 or hip_width == 0 or nose_to_shoulder_center == 0 or shoulder_center_to_hip_center == 0 or hip_center_to_ankle_center == 0 or whole_body_length == 0 or shoulder_center_to_ankle_center == 0:
         print(f'shoulder_head: {shoulder_head}')
         print(f'hip_head: {hip_head}')
         print(f'shoulder_width: {shoulder_width}')
@@ -347,8 +343,8 @@ def analysis(url, user_id):
         print(f'nose_to_shoulder_center: {nose_to_shoulder_center}')
         print(f'shoulder_center_to_hip_center: {shoulder_center_to_hip_center}')
         print(f'hip_center_to_ankle_center: {hip_center_to_ankle_center}')
+        print(f'shoulder_center_to_ankle_center: {shoulder_center_to_ankle_center}')
         print(f'whole_body_length: {whole_body_length}')
-        print(f'upper_body_lower_body: {upper_body_lower_body}')
         result_dict = {
             'message': 'Bad pose. Invalid body length.',
             'result': False
@@ -371,7 +367,7 @@ def analysis(url, user_id):
         'shoulder_center_to_hip_center': shoulder_center_to_hip_center,  # 어깨 중앙 ~ 골반 중앙 = h2
         'hip_center_to_ankle_center': hip_center_to_ankle_center,  # 골반 중앙 ~ 발목 중앙 = h3
         'whole_body_length': whole_body_length,  # 전신 길이 = h1 + h2 + h3
-        'upper_body_lower_body': upper_body_lower_body,  # 상체 + 하체 길이 = h2 + h3
+        'shoulder_center_to_ankle_center': shoulder_center_to_ankle_center,  # 상체 + 하체 길이 = h2 + h3
         'message': 'Done analysis'  # 성공 혹은 실패 여부
     }
 
