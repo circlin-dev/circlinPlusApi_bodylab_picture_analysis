@@ -1,13 +1,13 @@
 import numpy as np
 import cv2
 import time
-import datetime
+from datetime import datetime
 import json
 import os
 import requests
 from urllib.request import urlopen
-from global_things.constants import AMAZON_URL, BUCKET_NAME, BUCKET_BODY_IMAGE_OUTPUT_PATH, BODY_IMAGE_OUTPUT_PATH
-from global_things.functions import upload_output_to_s3
+from global_things.constants import AMAZON_URL, BUCKET_NAME, BUCKET_IMAGE_PATH_BODY_OUTPUT, LOCAL_SAVE_PATH_BODY_OUTPUT
+from global_things.functions import upload_output_to_s3, get_image_information, generate_resized_image
 
 # 출력 형식에 관한 자세한 내용은 다음 주소를 참고하세요: # https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
 from detectron2.engine import DefaultPredictor
@@ -310,18 +310,23 @@ def analysis(url, user_id):
     timeEnd = time.time() - timeStart
     print("Time passed for fully processing 1 image: ",timeEnd) #현재 시각 - 시작 시간
     """
-    dt = datetime.datetime.now()
-    nt = dt.strftime('%Y%m%d%H%M%S')
+    now = datetime.now().strftime('%Y%m%d%H%M%S')
 
-    output = cv2.resize(v_key.get_image()[:, :, ::-1], dsize=(0, 0), fx=0.3, fy=0.3, interpolation=cv2.INTER_LINEAR)
-    if str(user_id) not in os.listdir(f"{BODY_IMAGE_OUTPUT_PATH}"):
-        os.makedirs(f"{BODY_IMAGE_OUTPUT_PATH}/{user_id}")
-    file_name = f'{user_id}_{nt}.jpg'
-    local_image_path = f'{BODY_IMAGE_OUTPUT_PATH}/{user_id}/{file_name}'
+    # output = cv2.resize(v_key.get_image()[:, :, ::-1], dsize=(0, 0), fx=0.3, fy=0.3, interpolation=cv2.INTER_LINEAR)
+    output = v_key.get_image()[:, :, ::-1]
+    if str(user_id) not in os.listdir(f"{LOCAL_SAVE_PATH_BODY_OUTPUT}"):
+        os.makedirs(f"{LOCAL_SAVE_PATH_BODY_OUTPUT}/{user_id}")
+    extension = url.split('.')[-1]
+    file_name = f'bodylab_body_output_{user_id}_{now}.{extension}'
+    local_image_path = f'{LOCAL_SAVE_PATH_BODY_OUTPUT}/{user_id}/{file_name}'
     cv2.imwrite(local_image_path, output)
 
+    """output 가로 리사이징 후 저장"""
+    """Return 시 각 이미지 크기별 파일 크기, 가로, 세로 길이 추가 전달"""
+    body_image_height, body_image_width, body_image_channel = cv2.imread(output, cv2.IMREAD_COLOR).shape
+
     # 7. S3에 분석 결과 이미지(output_path) 원본 저장
-    object_name = f"{BUCKET_BODY_IMAGE_OUTPUT_PATH}/{user_id}/{file_name}"
+    object_name = f"{BUCKET_IMAGE_PATH_BODY_OUTPUT}/{user_id}/{file_name}"
     if upload_output_to_s3(local_image_path, BUCKET_NAME, object_name) is True:
         pass
     else:
@@ -332,8 +337,34 @@ def analysis(url, user_id):
         print('Pose error: ', result_dict)
         return json.dumps(result_dict)
     s3_path_body_output = f"{AMAZON_URL}/{object_name}"
+    body_output_image_dict = {
+        'pathname': s3_path_body_output,
+        'original_name': file_name,
+        'mime_type': get_image_information(local_image_path)['mime_type'],
+        'size': get_image_information(local_image_path)['size'],
+        'width': body_image_width,
+        'height': body_image_height,
+        # For Server
+        'file_name': file_name,
+        'local_path': local_image_path,
+        'object_name': object_name,
+    }
     if os.path.exists(local_image_path):
         os.remove(local_image_path)
+
+    resized_body_output_image_list = generate_resized_image(LOCAL_SAVE_PATH_BODY_OUTPUT, user_id, now, extension, local_image_path)
+    for resized_image in resized_body_output_image_list:
+        upload_result = upload_output_to_s3(resized_image['local_path'], BUCKET_NAME, resized_image['object_name'])
+        if upload_result is True:
+            pass
+        else:
+            result_dict = {
+                'message': f'Failed to upload body image into S3({upload_result})',
+                'result': False
+            }
+            return json.dumps(result_dict, ensure_ascii=False)
+        if os.path.exists(resized_image['local_path']):
+            os.remove(resized_image['local_path'])
 
     if shoulder_head == 0 or hip_head == 0 or shoulder_width == 0 or hip_width == 0 or nose_to_shoulder_center == 0 or shoulder_center_to_hip_center == 0 or hip_center_to_ankle_center == 0 or whole_body_length == 0 or shoulder_center_to_ankle_center == 0:
         print(f'shoulder_head: {shoulder_head}')
@@ -350,7 +381,7 @@ def analysis(url, user_id):
             'result': False
         }
         print('Pose error: ', result_dict)
-        return json.dumps(result_dict)
+        return json.dumps(result_dict, ensure_ascii=False)
     else:
         pass
 
@@ -368,6 +399,8 @@ def analysis(url, user_id):
         'hip_center_to_ankle_center': hip_center_to_ankle_center,  # 골반 중앙 ~ 발목 중앙 = h3
         'whole_body_length': whole_body_length,  # 전신 길이 = h1 + h2 + h3
         'shoulder_center_to_ankle_center': shoulder_center_to_ankle_center,  # 상체 + 하체 길이 = h2 + h3
+        'body_output_image_dict': body_output_image_dict,
+        'resized_body_output_image_list': resized_body_output_image_list,
         'message': 'Done analysis'  # 성공 혹은 실패 여부
     }
 
@@ -375,4 +408,4 @@ def analysis(url, user_id):
     print(result_dict)
     end_time = time.time()
     print("Time spent: ", end_time - start_time)
-    return json.dumps(result_dict)
+    return json.dumps(result_dict, ensure_ascii=False)
