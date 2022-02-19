@@ -323,7 +323,7 @@ def analysis(url, user_id):
 
     """output 가로 리사이징 후 저장"""
     """Return 시 각 이미지 크기별 파일 크기, 가로, 세로 길이 추가 전달"""
-    body_image_height, body_image_width, body_image_channel = cv2.imread(output, cv2.IMREAD_COLOR).shape
+    body_image_height, body_image_width, body_image_channel = cv2.imread(local_image_path, cv2.IMREAD_COLOR).shape
 
     # 7. S3에 분석 결과 이미지(output_path) 원본 저장
     object_name = f"{BUCKET_IMAGE_PATH_BODY_OUTPUT}/{user_id}/{file_name}"
