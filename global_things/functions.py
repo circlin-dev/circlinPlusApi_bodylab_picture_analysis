@@ -50,7 +50,7 @@ def generate_resized_image(LOCAL_SAVE_PATH, user_id, now, extension, original_im
   new_widths = [1080, 750, 640, 480, 320, 240, 150]
   new_image_list = []
   for new_width in new_widths:
-    new_height = new_width * height / width
+    new_height = int(new_width * height / width)
 
     if new_width > width:  # 확대
       resized_image = cv2.resize(original_image,
