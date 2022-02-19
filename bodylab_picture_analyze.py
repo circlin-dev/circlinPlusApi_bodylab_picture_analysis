@@ -349,8 +349,6 @@ def analysis(url, user_id):
         'local_path': local_image_path,
         'object_name': object_name,
     }
-    if os.path.exists(local_image_path):
-        os.remove(local_image_path)
 
     resized_body_output_image_list = generate_resized_image(LOCAL_SAVE_PATH_BODY_OUTPUT, user_id, now, extension, local_image_path)
     for resized_image in resized_body_output_image_list:
@@ -365,6 +363,8 @@ def analysis(url, user_id):
             return json.dumps(result_dict, ensure_ascii=False)
         if os.path.exists(resized_image['local_path']):
             os.remove(resized_image['local_path'])
+        if os.path.exists(local_image_path):
+            os.remove(local_image_path)
 
     if shoulder_head == 0 or hip_head == 0 or shoulder_width == 0 or hip_width == 0 or nose_to_shoulder_center == 0 or shoulder_center_to_hip_center == 0 or hip_center_to_ankle_center == 0 or whole_body_length == 0 or shoulder_center_to_ankle_center == 0:
         print(f'shoulder_head: {shoulder_head}')
