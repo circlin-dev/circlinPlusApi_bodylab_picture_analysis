@@ -70,7 +70,7 @@ def generate_resized_image(LOCAL_SAVE_PATH, user_id, now, extension, original_im
     cv2.imwrite(resized_image_path, resized_image)
     image_dict = {
       # For DB when INSERT
-      'pathname': f'{AMAZON_URL}/object_name',
+      'pathname': f'{AMAZON_URL}/{object_name}',
       'original_name': original_name,
       'mime_type': get_image_information(resized_image_path)['mime_type'],
       'size': get_image_information(resized_image_path)['size'],
