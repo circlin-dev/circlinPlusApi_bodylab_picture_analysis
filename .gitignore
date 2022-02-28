@@ -130,7 +130,7 @@ dmypy.json
 
 # Directories storing files.
 ./bodylab
-./global_things/s3_configs.py
+./config
 bodylab_picture_analysis_py3.8.sock
 
 # Unnecessary directories
