@@ -33,7 +33,7 @@ def free_trial():
     secure_file = secure_filename(body_image.filename)
     body_image.save(secure_file)
 
-    save_input_image = validate_and_save_to_s3(LOCAL_SAVE_PATH_BODY_TRIAL_INPUT, BUCKET_IMAGE_PATH_BODY_TRIAL_INPUT, secure_file)
+    save_input_image = validate_and_save_to_s3('input', LOCAL_SAVE_PATH_BODY_TRIAL_INPUT, BUCKET_IMAGE_PATH_BODY_TRIAL_INPUT, secure_file)
     if save_input_image['result'] is False:
         result = {'result': False, 'error': save_input_image['error']}
         return json.dumps(result, ensure_ascii=False), 400
@@ -47,7 +47,7 @@ def free_trial():
         return json.dumps(result, ensure_ascii=False), 400
 
     output_path = analysis_result['pathname']
-    save_output_image = validate_and_save_to_s3(LOCAL_SAVE_PATH_BODY_TRIAL_OUTPUT, BUCKET_IMAGE_PATH_BODY_TRIAL_OUTPUT, output_path)
+    save_output_image = validate_and_save_to_s3('output', LOCAL_SAVE_PATH_BODY_TRIAL_OUTPUT, BUCKET_IMAGE_PATH_BODY_TRIAL_OUTPUT, output_path)
     if save_output_image['result'] is False:
         result = {'result': False, 'error': save_output_image['error']}
         return json.dumps(result, ensure_ascii=False), 500
