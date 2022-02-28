@@ -39,7 +39,7 @@ def free_trial():
         return json.dumps(result, ensure_ascii=False), 400
 
     input_url = save_input_image['pathname']
-    input_original_name = save_input_image['input_original_name']
+    input_original_name = save_input_image['original_name']
 
     analysis_result = trial_analysis(input_url, LOCAL_SAVE_PATH_BODY_TRIAL_OUTPUT, input_original_name)
     if analysis_result['result'] is False:
