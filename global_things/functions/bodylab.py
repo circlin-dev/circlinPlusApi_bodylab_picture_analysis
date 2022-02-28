@@ -192,9 +192,9 @@ def generate_resized_image(LOCAL_SAVE_PATH, user_id, now, extension, original_im
 
 
 def get_image_information(path):
-  result = {
-    'mime_type': mimetypes.guess_type(path)[0],
-    'size': int(os.path.getsize(path))
-  }
-  return result
+    result = {
+        'mime_type': filetype.guess(path).mime,
+        'size': int(os.path.getsize(path))
+    }
+    return result
 # endregion
