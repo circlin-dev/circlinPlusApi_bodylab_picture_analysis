@@ -39,8 +39,8 @@ def validate_and_save_to_s3(save_path, bucket_path, file):
     if mime[1] in invalid_mimes:
         new_secure_file, extension = heic_to_jpg(file)
 
-        if os.path.exists(new_secure_file):
-            shutil.move(new_secure_file, save_path)
+        # if os.path.exists(new_secure_file):
+        #     shutil.move(new_secure_file, save_path)
         # 처리 불가한 이미지 확장자 파일은, 변환 후 원본 파일은 지워야 한다.
         if os.path.exists(file):
             os.remove(file)
@@ -51,8 +51,8 @@ def validate_and_save_to_s3(save_path, bucket_path, file):
             os.rename(converted_file, encrypted_file_path)
     else:
         # 처리 가능한 이미지 확장자 파일은, 원본을 다른 디렉터리로 옮겨 작업한다.
-        if os.path.exists(file):
-            shutil.move(file, save_path)
+        # if os.path.exists(file):
+        #     shutil.move(file, save_path)
         moved_file = f"{save_path}/{file}"
         extension = file.split('.')[-1]
         encrypted_file_name = f"{unique_name}.{extension}"
