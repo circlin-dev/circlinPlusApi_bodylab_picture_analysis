@@ -26,7 +26,7 @@ def testing():
 
 @app.route('/trial-analysis', methods=['POST'])
 def free_trial():
-    parameters = json.loads(request.get_data(), encoding='utf-8')
+    parameters = request.form.to_dict()
     user_height = float(parameters['height'])
     user_weight = float(parameters['weight'])
     body_image = request.files.to_dict()['body_image']
