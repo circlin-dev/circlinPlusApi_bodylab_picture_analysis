@@ -61,14 +61,14 @@ def validate_and_save_to_s3(save_path, bucket_path, file):
 
     image_height, image_width, image_channel = cv2.imread(encrypted_file_path, cv2.IMREAD_COLOR).shape
     object_name = f"{bucket_path}/{encrypted_file_name}"
-    upload_result = upload_file_to_s3(encrypted_file_name, BUCKET_NAME, object_name)
+    upload_result = upload_file_to_s3(encrypted_file_path, BUCKET_NAME, object_name)
 
     if upload_result is False:
         if os.path.exists(encrypted_file_path):
             os.remove(encrypted_file_path)
         result = {
             'result': False,
-            'error': 'S3 Upload error: Failed to upload input image.'
+            'error': 'S3 Upload error: Failed to upload image.'
         }
         return result
     else:
