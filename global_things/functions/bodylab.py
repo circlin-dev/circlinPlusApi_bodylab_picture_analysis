@@ -59,7 +59,7 @@ def validate_and_save_to_s3(save_path, bucket_path, file):
         if os.path.exists(moved_file):
             os.rename(moved_file, encrypted_file_path)
 
-    image_height, image_width, image_channel = cv2.imread(encrypted_file_path, cv2.IMREAD_COLOR)
+    image_height, image_width, image_channel = cv2.imread(encrypted_file_path, cv2.IMREAD_COLOR).shape
     object_name = f"{bucket_path}/{encrypted_file_name}"
     upload_result = upload_file_to_s3(encrypted_file_name, BUCKET_NAME, object_name)
 
