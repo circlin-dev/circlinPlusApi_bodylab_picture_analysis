@@ -24,7 +24,7 @@ def upload_file_to_s3(file_name, bucket_name, object_name):
     return True
 
 
-def validate_and_save_to_s3(save_path, bucket_path, file):
+def validate_and_save_to_s3(file_type, save_path, bucket_path, file):
     unique_name = uuid.uuid4()
     invalid_mimes = ['heic', 'HEIC', 'heif', 'HEIF']
 
@@ -36,58 +36,99 @@ def validate_and_save_to_s3(save_path, bucket_path, file):
         }
         return result
 
-    if mime[1] in invalid_mimes:
-        new_secure_file, extension = heic_to_jpg(file)
-        if os.path.exists(new_secure_file):
-            shutil.move(new_secure_file, save_path)
-        # 처리 불가한 이미지 확장자 파일은, 변환 후 원본 파일은 지워야 한다.
-        if os.path.exists(file):
-            os.remove(file)
-        converted_file = f"{save_path}/{new_secure_file}"
-        encrypted_file_name = f"{unique_name}.{extension}"
-        encrypted_file_path = f"{save_path}/{encrypted_file_name}"
-        if os.path.exists(converted_file):
-            os.rename(converted_file, encrypted_file_path)
-    else:
-        # 처리 가능한 이미지 확장자 파일은, 원본을 다른 디렉터리로 옮겨 작업한다.
-        if os.path.exists(file):
-            shutil.move(file, save_path)
-        moved_file = f"{save_path}/{file}"
-        extension = file.split('.')[-1]
-        encrypted_file_name = f"{unique_name}.{extension}"
-        encrypted_file_path = f"{save_path}/{encrypted_file_name}"
-        if os.path.exists(moved_file):
-            os.rename(moved_file, encrypted_file_path)
+    if file_type == 'input':
+        if mime[1] in invalid_mimes:
+            new_secure_file, extension = heic_to_jpg(file)
+            if os.path.exists(new_secure_file):
+                shutil.move(new_secure_file, save_path)
+            # 처리 불가한 이미지 확장자 파일은, 변환 후 원본 파일은 지워야 한다.
+            if os.path.exists(file):
+                os.remove(file)
+            converted_file = f"{save_path}/{new_secure_file}"
+            encrypted_file_name = f"{unique_name}.{extension}"
+            encrypted_file_path = f"{save_path}/{encrypted_file_name}"
+            if os.path.exists(converted_file):
+                os.rename(converted_file, encrypted_file_path)
+        else:
+            # 처리 가능한 이미지 확장자 파일은, 원본을 다른 디렉터리로 옮겨 작업한다.
+            if os.path.exists(file):
+                shutil.move(file, save_path)
+            moved_file = f"{save_path}/{file}"
+            extension = file.split('.')[-1]
+            encrypted_file_name = f"{unique_name}.{extension}"
+            encrypted_file_path = f"{save_path}/{encrypted_file_name}"
+            if os.path.exists(moved_file):
+                os.rename(moved_file, encrypted_file_path)
 
-    image_height, image_width, image_channel = cv2.imread(encrypted_file_path, cv2.IMREAD_COLOR).shape
-    object_name = f"{bucket_path}/{encrypted_file_name}"
-    upload_result = upload_file_to_s3(encrypted_file_path, BUCKET_NAME, object_name)
+        image_height, image_width, image_channel = cv2.imread(encrypted_file_path, cv2.IMREAD_COLOR).shape
+        object_name = f"{bucket_path}/{encrypted_file_name}"
+        upload_result = upload_file_to_s3(encrypted_file_path, BUCKET_NAME, object_name)
 
-    if upload_result is False:
-        if os.path.exists(encrypted_file_path):
-            os.remove(encrypted_file_path)
-        result = {
-            'result': False,
-            'error': 'S3 Upload error: Failed to upload image.'
-        }
-        return result
+        if upload_result is False:
+            if os.path.exists(encrypted_file_path):
+                os.remove(encrypted_file_path)
+            result = {
+                'result': False,
+                'error': 'S3 Upload error: Failed to upload image.'
+            }
+            return result
+        else:
+            result = {
+                'result': True,
+                'pathname': f"{AMAZON_URL}/{bucket_path}/{encrypted_file_name}",
+                'original_name': encrypted_file_name,
+                'mime_type': get_image_information(encrypted_file_path)['mime_type'],
+                'size': get_image_information(encrypted_file_path)['size'],
+                'width': image_width,
+                'height': image_height,
+                # For Server
+                'file_name': encrypted_file_name,
+                'local_path': encrypted_file_path,
+                'object_name': object_name,
+            }
+            if os.path.exists(encrypted_file_path):
+                os.remove(encrypted_file_path)
+            return result
     else:
-        result = {
-            'result': True,
-            'pathname': f"{AMAZON_URL}/{bucket_path}/{encrypted_file_name}",
-            'original_name': encrypted_file_name,
-            'mime_type': get_image_information(encrypted_file_path)['mime_type'],
-            'size': get_image_information(encrypted_file_path)['size'],
-            'width': image_width,
-            'height': image_height,
-            # For Server
-            'file_name': encrypted_file_name,
-            'local_path': encrypted_file_path,
-            'object_name': object_name,
-        }
-        if os.path.exists(encrypted_file_path):
-            os.remove(encrypted_file_path)
-        return result
+        # if os.path.exists(file):
+        #     shutil.move(file, save_path)
+        # moved_file = f"{save_path}/{file}"
+        # extension = file.split('.')[-1]
+        # encrypted_file_name = f"{unique_name}.{extension}"
+        # encrypted_file_path = f"{save_path}/{encrypted_file_name}"
+        # if os.path.exists(moved_file):
+        #     os.rename(moved_file, encrypted_file_path)
+
+        image_height, image_width, image_channel = cv2.imread(file, cv2.IMREAD_COLOR).shape
+        file_name = file.split('/')[-1]
+        object_name = f"{bucket_path}/{file_name}"
+        upload_result = upload_file_to_s3(file, BUCKET_NAME, object_name)
+
+        if upload_result is False:
+            if os.path.exists(file):
+                os.remove(file)
+            result = {
+                'result': False,
+                'error': 'S3 Upload error: Failed to upload image.'
+            }
+            return result
+        else:
+            result = {
+                'result': True,
+                'pathname': f"{AMAZON_URL}/{object_name}",
+                'original_name': file_name,
+                'mime_type': get_image_information(file)['mime_type'],
+                'size': get_image_information(file)['size'],
+                'width': image_width,
+                'height': image_height,
+                # For Server
+                'file_name': file_name,
+                'local_path': file,
+                'object_name': object_name,
+            }
+            if os.path.exists(file):
+                os.remove(file)
+            return result
 
 
 def heic_to_jpg(path):
