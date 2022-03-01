@@ -4,7 +4,7 @@ import json
 from werkzeug.utils import secure_filename
 from . import api
 from global_things.constants import BUCKET_IMAGE_PATH_BODY_TRIAL_INPUT, BUCKET_IMAGE_PATH_BODY_TRIAL_OUTPUT, LOCAL_SAVE_PATH_BODY_TRIAL_INPUT, LOCAL_SAVE_PATH_BODY_TRIAL_OUTPUT
-from global_things.functions.bodylab import analysis, trial_analysis, validate_and_save_to_s3
+from global_things.functions.bodylab import analysis, trial_analysis, find_similar_entertainer, validate_and_save_to_s3
 from global_things.functions.general import login_to_db
 from global_things.functions.slack import slack_error_notification
 
@@ -69,7 +69,7 @@ def free_trial():
     parameters = request.form.to_dict()
     user_height = float(parameters['height'])
     user_weight = float(parameters['weight'])
-    gender = parameters['gender']
+    gender = str(parameters['gender'])
     body_image = request.files.to_dict()['body_image']
     secure_file = secure_filename(body_image.filename)
     body_image.save(secure_file)
@@ -129,6 +129,7 @@ def free_trial():
     connection.commit()
     connection.close()
 
+    similar = find_similar_entertainer(cursor, str(gender), user_height, analysis_result['hip_ratio'], analysis_result['shoulder_ratio'])
     result_dict = {
         "result": True,
         "body_image_analysis": {
@@ -148,21 +149,7 @@ def free_trial():
                 "shoulder_center_to_ankle_center": analysis_result['shoulder_center_to_ankle_center'],
                 "whole_body_length": analysis_result['whole_body_length']
             },
-            "compare": {
-                "name": "Ho Jung Jeong",
-                "height": user_height,
-                # "weight": user_weight,
-                "head_width": 92.03,
-                "shoulder_width": analysis_result['shoulder_width'],
-                "shoulder_ratio": analysis_result['shoulder_ratio'],
-                "hip_width": analysis_result['hip_width'],
-                "hip_ratio": analysis_result['hip_ratio'],
-                "nose_to_shoulder_center": analysis_result['nose_to_shoulder_center'],
-                "shoulder_center_to_hip_center": analysis_result['shoulder_center_to_hip_center'],
-                "hip_center_to_ankle_center": analysis_result['hip_center_to_ankle_center'],
-                "shoulder_center_to_ankle_center": analysis_result['shoulder_center_to_ankle_center'],
-                "whole_body_length": analysis_result['whole_body_length']
-            }
+            "compare": similar
         }
     }
     return json.dumps(result_dict, ensure_ascii=False), 201
