@@ -78,6 +78,7 @@ def index():
 def free_trial():
     parameters = request.form.to_dict()
     user_height = float(parameters['height'])
+    user_weight = float(parameters['weight'])
     gender = parameters['gender']
     body_image = request.files.to_dict()['body_image']
     secure_file = secure_filename(body_image.filename)
@@ -124,13 +125,13 @@ def free_trial():
     sql = f"""
         INSERT INTO 
             bodylab_trials(
-                is_standard, gender, file_id_body_input, file_id_body_output, height, head_width,
+                is_standard, gender, file_id_body_input, file_id_body_output, height, weight, head_width,
                 shoulder_width, shoulder_ratio, hip_width, hip_ratio, nose_to_shoulder_center, 
                 shoulder_center_to_hip_center, hip_center_to_ankle_center, shoulder_center_to_ankle_center, whole_body_length
             )
         VALUES
             (
-                False, '{gender}', {file_ids[0]}, {file_ids[1]}, {user_height}, {head_width},
+                False, '{gender}', {file_ids[0]}, {file_ids[1]}, {user_height}, {user_weight}, {head_width},
                 {analysis_result['shoulder_width']}, {analysis_result['shoulder_ratio']}, {analysis_result['hip_width']}, {analysis_result['hip_ratio']}, {analysis_result['nose_to_shoulder_center']}, 
                 {analysis_result['shoulder_center_to_hip_center']}, {analysis_result['hip_center_to_ankle_center']}, {analysis_result['shoulder_center_to_ankle_center']}, {analysis_result['whole_body_length']}
             )"""
@@ -145,6 +146,7 @@ def free_trial():
             "body_output_url": output_url,
             "user": {
                 "height": user_height,
+                "weight": user_weight,
                 # "head_width": head_width,
                 "shoulder_width": analysis_result['shoulder_width'],
                 "shoulder_ratio": analysis_result['shoulder_ratio'],
