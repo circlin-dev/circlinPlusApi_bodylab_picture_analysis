@@ -220,7 +220,6 @@ def analysis(url, user_id):
             'message': f'Cannot find image({str(e)})',
             'result': False
         }
-        print(result_dict)
         return json.dumps(result_dict)
 
     # 3. Segmentation & KeyPoints extraction.
@@ -238,24 +237,20 @@ def analysis(url, user_id):
 
     try:
         outputs_seg = predictor_seg(im)
-        print("Detected classes: ", outputs_seg["instances"].pred_classes)
     except Exception as e:
         result_dict = {
             'message': f'Cannot open image url: {str(e)}',
             'result': False
         }
-        print(result_dict)
         return json.dumps(result_dict)
 
     # Copy outputs_Seg and filter 'person' class only.
     person_seg = outputs_seg['instances'][outputs_seg['instances'].pred_classes == 0]
-    print("Detected persons: ", len(person_seg))
-    print("Detected persons information: ", person_seg)
+
 
     if len(person_seg) == 1:
         # Remain only one highest probability of person.
         person_seg_trustful = person_seg[person_seg.scores == person_seg.scores.max()]
-        print("Person who has the highest probability: ", person_seg_trustful.to("cpu"))
 
         # Remove bounding box, class label, predicting score from the image.
         person_seg_trustful.remove('pred_boxes')  # Removing bounding box.
@@ -272,7 +267,6 @@ def analysis(url, user_id):
             # 사람 형태가 모두가 확실한 것은 아니라고 가정. ==> 상위 1명만 Segmentation 그린다.
             # Remain only one highest probability of person.
             person_seg_trustful = person_seg[person_seg.scores == person_seg.scores.max()]
-            print("Person who has the highest probability: ", person_seg_trustful.to("cpu"))
 
             # Remove bounding box, class label, predicting score from the image.
             person_seg_trustful.remove('pred_boxes')  # Removing bounding box.
@@ -300,7 +294,6 @@ def analysis(url, user_id):
             'message': 'No person detected.',
             'result': False
         }
-        print(result_dict)
         return json.dumps(result_dict)
 
     # #################################################################################
@@ -320,14 +313,12 @@ def analysis(url, user_id):
     # Copy outputs_Seg and filter keypoints of the 'person' object who has highest probability. #Keypoints are only for person, so class filtering doesn't needed.
     try:
         person_key = outputs_key['instances'][outputs_key['instances'].scores == outputs_key['instances'].scores.max()]
-        print("person_key: ", person_key)
     except:
         # if len(outputs_Key['instances'].pred_classes) == 0  ==>  Error occurs at person_Key because no keypoints to draw detected.
         result_dict = {
             'message': 'No person detected.',
             'result': False
         }
-        print(result_dict)
         return json.dumps(result_dict)
 
     """Removing bounding box, class label, predicting score."""
@@ -344,11 +335,7 @@ def analysis(url, user_id):
     keypoints_person = keypoints_whole[0]  # keypoints of one highest probability person
     howManyPerson = len(keypoints_whole)  # Number of keypoint tensors(Number of 2-D tensors)(1 2-D tensor is consists of 17 1-D tensors.)
     howManyKeyPoints = len(keypoints_person)  # Number of keypoints of one highest probability person
-    print("how many person: ", howManyPerson)
-    print("Number of keypoints: ", howManyKeyPoints)
-    print("Location of keypoints of one highest person: ", keypoints_person)
     if howManyKeyPoints < 17:
-        print("Keypoints error: len(keypoints_person) < 17")
         result_dict = {
             'message': 'Bad pose: Unable to detect the whole body joints.',
             'result': False
@@ -362,14 +349,12 @@ def analysis(url, user_id):
             'message': 'Too many people.',
             'result': False
         }
-        print('Person error: ', result_dict)
         return json.dumps(result_dict)
     elif howManyPerson == 0:
         result_dict = {
             'message': 'No person detected.',
             'result': False
         }
-        print('Person error: ', result_dict)
         return json.dumps(result_dict)
     else:
         pass
@@ -450,18 +435,15 @@ def analysis(url, user_id):
 
     # torch.tensor들 float으로 변환 & 소수점 둘째자리까지만 계산
     head_width = abs(left_ear_x - right_ear_x)  # type: torch.tensor
-    print(head_width)
     head_width = head_width.item()  # 형변환: torch.tensor -> float
     head_width = round(head_width, 2)  # 소수점 둘째 자리까지만 출력
 
     shoulder_width = abs(left_shoulder_x - right_shoulder_x)  # type: torch.tensor
-    print(shoulder_width)
     shoulder_width = shoulder_width.item()  # 형변환: torch.tensor -> float
     shoulder_width = round(shoulder_width, 2)  # 소수점 둘째 자리까지만 출력
 
     # try:
     hip_width = abs(left_hip_x - right_hip_x)  # type: torch.tensor
-    print(hip_width)
     hip_width = hip_width.item()  # 형변환: torch.tensor -> float
     hip_width = round(hip_width, 2)  # 소수점 둘째 자리까지만 출력
 
@@ -475,7 +457,6 @@ def analysis(url, user_id):
             'message': 'Bad pose. Head or hip width is 0',
             'result': True
         }
-        print('Pose error: ', result_dict)
         return json.dumps(result_dict)
 
     # 길이값
@@ -490,11 +471,7 @@ def analysis(url, user_id):
     # 상체 + 하체 길이 = h2 + h3
     shoulder_center_to_ankle_center = shoulder_center_to_hip_center + hip_center_to_ankle_center
 
-    """
-    #6. 이미지 1장 처리에 걸리는 시간 측정(초 단위). #GPU 및 CUDA가 설치된다면 더 빠르게 가능할 것이다.
-    timeEnd = time.time() - timeStart
-    print("Time passed for fully processing 1 image: ",timeEnd) #현재 시각 - 시작 시간
-    """
+
     now = datetime.now().strftime('%Y%m%d%H%M%S')
 
     # output = cv2.resize(v_key.get_image()[:, :, ::-1], dsize=(0, 0), fx=0.3, fy=0.3, interpolation=cv2.INTER_LINEAR)
@@ -518,7 +495,6 @@ def analysis(url, user_id):
             'message': f'Error while upload output image into S3 for original image.',
             'result': False
         }
-        print('Pose error: ', result_dict)
         return json.dumps(result_dict)
     s3_path_body_output = f"{AMAZON_URL}/{object_name}"
     body_output_image_dict = {
@@ -609,7 +585,6 @@ def trial_analysis(url, output_save_path, file_name):
 
     try:
         outputs_seg = predictor_seg(im)
-        print("Detected classes: ", outputs_seg["instances"].pred_classes)
     except Exception as e:
         result_dict = {
             'message': f'Cannot open image url: {str(e)}',
@@ -620,13 +595,10 @@ def trial_analysis(url, output_save_path, file_name):
 
     # Copy outputs_Seg and filter 'person' class only.
     person_seg = outputs_seg['instances'][outputs_seg['instances'].pred_classes == 0]
-    print("Detected persons: ", len(person_seg))
-    print("Detected persons information: ", person_seg)
 
     if len(person_seg) == 1:
         # Remain only one highest probability of person.
         person_seg_trustful = person_seg[person_seg.scores == person_seg.scores.max()]
-        print("Person who has the highest probability: ", person_seg_trustful.to("cpu"))
 
         # Remove bounding box, class label, predicting score from the image.
         person_seg_trustful.remove('pred_boxes')  # Removing bounding box.
@@ -643,7 +615,6 @@ def trial_analysis(url, output_save_path, file_name):
             # 사람 형태가 모두가 확실한 것은 아니라고 가정. ==> 상위 1명만 Segmentation 그린다.
             # Remain only one highest probability of person.
             person_seg_trustful = person_seg[person_seg.scores == person_seg.scores.max()]
-            print("Person who has the highest probability: ", person_seg_trustful.to("cpu"))
 
             # Remove bounding box, class label, predicting score from the image.
             person_seg_trustful.remove('pred_boxes')  # Removing bounding box.
@@ -690,7 +661,6 @@ def trial_analysis(url, output_save_path, file_name):
     # Copy outputs_Seg and filter keypoints of the 'person' object who has highest probability. #Keypoints are only for person, so class filtering doesn't needed.
     try:
         person_key = outputs_key['instances'][outputs_key['instances'].scores == outputs_key['instances'].scores.max()]
-        print("person_key: ", person_key)
     except:
         # if len(outputs_Key['instances'].pred_classes) == 0  ==>  Error occurs at person_Key because no keypoints to draw detected.
         result_dict = {
@@ -714,11 +684,7 @@ def trial_analysis(url, output_save_path, file_name):
     keypoints_person = keypoints_whole[0]  # keypoints of one highest probability person
     howManyPerson = len(keypoints_whole)  # Number of keypoint tensors(Number of 2-D tensors)(1 2-D tensor is consists of 17 1-D tensors.)
     howManyKeyPoints = len(keypoints_person)  # Number of keypoints of one highest probability person
-    print("how many person: ", howManyPerson)
-    print("Number of keypoints: ", howManyKeyPoints)
-    print("Location of keypoints of one highest person: ", keypoints_person)
     if howManyKeyPoints < 17:
-        print("Keypoints error: len(keypoints_person) < 17")
         result_dict = {
             'message': 'Bad pose: Unable to detect the whole body joints.',
             'result': False
@@ -819,18 +785,15 @@ def trial_analysis(url, output_save_path, file_name):
 
     # torch.tensor들 float으로 변환 & 소수점 둘째자리까지만 계산
     head_width = abs(left_ear_x - right_ear_x)  # type: torch.tensor
-    print(head_width)
     head_width = head_width.item()  # 형변환: torch.tensor -> float
     head_width = round(head_width, 2)  # 소수점 둘째 자리까지만 출력
 
     shoulder_width = abs(left_shoulder_x - right_shoulder_x)  # type: torch.tensor
-    print(shoulder_width)
     shoulder_width = shoulder_width.item()  # 형변환: torch.tensor -> float
     shoulder_width = round(shoulder_width, 2)  # 소수점 둘째 자리까지만 출력
 
     # try:
     hip_width = abs(left_hip_x - right_hip_x)  # type: torch.tensor
-    print(hip_width)
     hip_width = hip_width.item()  # 형변환: torch.tensor -> float
     hip_width = round(hip_width, 2)  # 소수점 둘째 자리까지만 출력
 
@@ -857,13 +820,6 @@ def trial_analysis(url, output_save_path, file_name):
     whole_body_length = nose_to_shoulder_center + shoulder_center_to_hip_center + hip_center_to_ankle_center
     # 상체 + 하체 길이 = h2 + h3
     shoulder_center_to_ankle_center = shoulder_center_to_hip_center + hip_center_to_ankle_center
-
-    """
-    #6. 이미지 1장 처리에 걸리는 시간 측정(초 단위). #GPU 및 CUDA가 설치된다면 더 빠르게 가능할 것이다.
-    timeEnd = time.time() - timeStart
-    print("Time passed for fully processing 1 image: ",timeEnd) #현재 시각 - 시작 시간
-    """
-    now = datetime.now().strftime('%Y%m%d%H%M%S')
 
     # output = cv2.resize(v_key.get_image()[:, :, ::-1], dsize=(0, 0), fx=0.3, fy=0.3, interpolation=cv2.INTER_LINEAR)
     output = v_key.get_image()[:, :, ::-1]

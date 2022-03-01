@@ -20,9 +20,7 @@ from global_things.functions.slack import slack_error_notification
 
 @api.route('/analysis', methods=['POST'])
 def index():
-    print('Accessed to test server.')
     # Input: 이미지 주소, 유저 정보(id)
-
     try:
         req = request.get_json()
         url = req.get('url')
@@ -39,35 +37,27 @@ def index():
     result = json.loads(result)
     result_message = result['message']
     if result_message == 'Too many people.':
-        print(result_message)
         slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'Cannot find image.':
-        print(result_message)
         slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'No person detected.':
-        print(result_message)
         slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'Unacceptable file extension.':
-        print(result_message)
         slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'Bad pose. Unable to detect the whole body joints.':
-        print(result_message)
         slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'Bad pose. Head or hip width is 0.':
-        print(result_message)
         slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'Bad pose. Invalid body length.':
-        print(result_message)
         slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 400
     elif result_message == 'Error while upload output image into S3 for original image.':
-        print(result_message)
         slack_error_notification(user_id=user_id, api='/analysis', error_log=f"Error while analyzing original image '{url}': {result_message}")
         return result, 500
     else:
@@ -112,9 +102,9 @@ def free_trial():
     for data in [save_input_image, save_output_image]:
         sql = f"""
             INSERT INTO 
-                files(pathname, original_name, mime_type, size, width, height)
+                files(created_at, updated_at, pathname, original_name, mime_type, size, width, height)
             VALUES
-                (%s, %s, %s, %s, %s, %s)"""
+                ((SELECT NOW()), (SELECT NOW()), %s, %s, %s, %s, %s, %s)"""
         values = (data['pathname'], data['original_name'],
                   data['mime_type'], data['size'],
                   data['width'], data['height'])
