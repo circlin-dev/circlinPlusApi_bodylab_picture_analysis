@@ -561,7 +561,8 @@ def trial_analysis(url, output_save_path, file_name):
     try:
         req = urlopen(url)
         arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-        im = cv2.imdecode(arr, -1)
+        # im = cv2.imdecode(arr, -1)
+        im = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     except Exception as e:
         result_dict = {
             'url': url,
