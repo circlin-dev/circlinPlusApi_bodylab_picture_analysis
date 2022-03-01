@@ -1,4 +1,3 @@
-
 from flask import request
 import json
 from werkzeug.utils import secure_filename
@@ -7,15 +6,6 @@ from global_things.constants import BUCKET_IMAGE_PATH_BODY_TRIAL_INPUT, BUCKET_I
 from global_things.functions.bodylab import analysis, trial_analysis, find_similar_entertainer, validate_and_save_to_s3
 from global_things.functions.general import login_to_db
 from global_things.functions.slack import slack_error_notification
-
-# # 출력 형식에 관한 자세한 내용은 다음 주소를 참고하세요: # https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
-# from detectron2.engine import DefaultPredictor
-# from detectron2.config import get_cfg
-# from detectron2.utils.visualizer import Visualizer
-# from detectron2.data import MetadataCatalog
-# from detectron2 import model_zoo
-# from detectron2.utils.logger import setup_logger
-# setup_logger()
 
 
 @api.route('/analysis', methods=['POST'])
