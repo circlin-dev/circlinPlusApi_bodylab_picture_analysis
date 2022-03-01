@@ -212,7 +212,8 @@ def analysis(url, user_id):
     try:
         req = urlopen(url)
         arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-        im = cv2.imdecode(arr, -1)
+        # im = cv2.imdecode(arr, -1)
+        im = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     except Exception as e:
         result_dict = {
             'url': url,
