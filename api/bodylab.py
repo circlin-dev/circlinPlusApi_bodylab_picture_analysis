@@ -59,7 +59,7 @@ def free_trial():
     parameters = request.form.to_dict()
     user_height = float(parameters['height'])
     user_weight = float(parameters['weight'])
-    gender = str(parameters['gender'])
+    gender = str(parameters['gender'].upper())
     body_image = request.files.to_dict()['body_image']
     secure_file = secure_filename(body_image.filename)
     body_image.save(secure_file)
@@ -117,9 +117,9 @@ def free_trial():
             )"""
     cursor.execute(sql)
     connection.commit()
+    similar = find_similar_entertainer(cursor, str(gender), user_height, analysis_result['hip_ratio'], analysis_result['shoulder_ratio'])
     connection.close()
 
-    similar = find_similar_entertainer(cursor, str(gender), user_height, analysis_result['hip_ratio'], analysis_result['shoulder_ratio'])
     result_dict = {
         "result": True,
         "body_image_analysis": {
