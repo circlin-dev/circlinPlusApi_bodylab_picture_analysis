@@ -468,7 +468,7 @@ def find_similar_entertainer(cursor, gender: str, user_height: float, user_hip_r
     closest_index = euclidean_list.index(min(euclidean_list))
     result = json.loads(df.to_json(orient='records'))[closest_index]
 
-    return json.dumps(result, ensure_ascii=False)
+    return result
 # endregion
 
 
