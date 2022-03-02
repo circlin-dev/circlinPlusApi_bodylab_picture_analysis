@@ -117,7 +117,7 @@ def free_trial():
             )"""
     cursor.execute(sql)
     connection.commit()
-    similar = find_similar_entertainer(cursor, str(gender), user_height, analysis_result['hip_ratio'], analysis_result['shoulder_ratio'])
+    similar, recommend_program = find_similar_entertainer(cursor, str(gender), user_height, analysis_result['hip_ratio'], analysis_result['shoulder_ratio'])
     connection.close()
 
     result_dict = {
@@ -139,7 +139,8 @@ def free_trial():
                 "shoulder_center_to_ankle_center": analysis_result['shoulder_center_to_ankle_center'],
                 "whole_body_length": analysis_result['whole_body_length']
             },
-            "compare": similar
+            "compare": similar,
+            "recommend": recommend_program
         }
     }
     return json.dumps(result_dict, ensure_ascii=False), 201

@@ -466,9 +466,54 @@ def find_similar_entertainer(cursor, gender: str, user_height: float, user_hip_r
         euclidean_list.append(euclidean_distances(user_normalized.reshape(1, -1), normalized.reshape(1, -1)))
 
     closest_index = euclidean_list.index(min(euclidean_list))
-    result = json.loads(df.to_json(orient='records'))[closest_index]
+    similar_entertainer = json.loads(df.to_json(orient='records'))[closest_index]
 
-    return result
+    # 연예인 정보로 추천 프로그램 찾기
+    sql = f"""
+        SELECT
+               p.id,
+               p.title AS program,
+               c.name AS coach,
+               e.title AS exercise,
+               f.pathname AS program_thumbnail,
+               (SELECT JSON_ARRAYAGG(pathname) FROM files WHERE files.original_file_id = p.thumbnail_id) AS program_thumbnails
+        FROM
+             bodylab_trials bt
+        INNER JOIN
+                 bodylab_trial_programs btp
+            ON 
+                bt.id = btp.bodylab_trial_id
+        INNER JOIN
+                 programs p
+            ON 
+                btp.program_id = p.id
+        INNER JOIN
+            coaches c
+            ON 
+                p.coach_id = c.id
+        INNER JOIN
+            program_exercises pe
+            ON
+                p.id = pe.program_id
+        INNER JOIN
+            exercises e
+            ON
+                e.id = pe.exercise_id
+        INNER JOIN files f
+            ON
+                f.id = p.thumbnail_id
+        WHERE bt.name='{similar_entertainer["name"]}'"""
+    cursor.execute(sql)
+    program = cursor.fetchall()
+
+    col_program = ['id', 'title',
+                   'coach', 'exercise',
+                   'thumbnail', 'thumbnails']
+
+    df_program = pd.DataFrame(data=program, columns=col_program)
+    df_program['thumbnails'] = df_program['thumbnails'].apply(lambda x: json.loads(x))
+    recommended_program = json.loads(df_program.to_json(orient='records'))[0]
+    return similar_entertainer, recommended_program
 # endregion
 
 
