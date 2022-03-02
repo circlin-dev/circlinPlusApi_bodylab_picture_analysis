@@ -512,8 +512,8 @@ def find_similar_entertainer(cursor, gender: str, user_height: float, user_hip_r
 
     df_program = pd.DataFrame(data=program, columns=col_program)
     df_program['thumbnails'] = df_program['thumbnails'].apply(lambda x: json.loads(x))
-    recommended_program = json.loads(df_program.to_json(orient='records'))[0]
-    return similar_entertainer, recommended_program
+    recommended_programs = json.loads(df_program.to_json(orient='records'))
+    return similar_entertainer, recommended_programs
 # endregion
 
 
