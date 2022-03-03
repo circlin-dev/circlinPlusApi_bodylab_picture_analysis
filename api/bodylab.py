@@ -117,7 +117,7 @@ def free_trial():
             )"""
     cursor.execute(sql)
     connection.commit()
-    similar, recommend_programs = find_similar_entertainer(cursor, str(gender), user_height, analysis_result['hip_ratio'], analysis_result['shoulder_ratio'])
+    similar, recommend_programs = find_similar_entertainer(cursor, str(gender), user_height, user_weight, analysis_result['hip_ratio'], analysis_result['shoulder_ratio'])
     connection.close()
 
     result_dict = {

@@ -424,7 +424,7 @@ def trial_analysis(url, output_save_path, file_name):
     return result_dict
 
 
-def find_similar_entertainer(cursor, gender: str, user_height: float, user_hip_ratio: float, user_shoulder_ratio: float):
+def find_similar_entertainer(cursor, gender: str, user_height: float, user_weight: float, user_hip_ratio: float, user_shoulder_ratio: float):
     sql = f"""
         SELECT 
                 name, gender, height, weight, head_width,
@@ -449,13 +449,50 @@ def find_similar_entertainer(cursor, gender: str, user_height: float, user_hip_r
     # col = ['name', 'gender', 'height', 'shoulder_ratio', 'hip_ratio']
     df = pd.DataFrame(data=entertainers, columns=col)
 
-    # 좌표평면에 mapping 후 유클리드 거리 유사도 측정
-    user = np.array([user_height, user_shoulder_ratio, user_hip_ratio])
-    vectorized_entertainers = []
+    # 1안. 키, 체중을 기준으로 오름차순 정렬한 후 유사한 수치인 사람들을 찾기
+    my_specification = {'name': 'circlin', 'height': user_height, 'weight': user_weight, 'hip_ratio': user_hip_ratio, 'shoulder_ratio': user_shoulder_ratio}
+    specification_list = []
     for entertainer in entertainers:
-        np_ent = np.asarray([entertainer[2], entertainer[6], entertainer[8]])
-        np_ent = np.array([float(x) for x in np_ent])
-        vectorized_entertainers.append(np_ent)
+        ent_specification = {'name': entertainer[0], 'height': entertainer[2], 'weight': entertainer[3], 'shoulder_ratio': entertainer[6],
+                             'hip_ratio': entertainer[8]}
+        specification_list.append(ent_specification)
+    specification_list.append(my_specification)
+
+    specification_list = sorted(specification_list, key=lambda x: (x['height'], x['weight']))
+
+    my_index = 0
+    for index, dictionary in enumerate(specification_list):
+        if dictionary['name'] == 'circlin':
+            my_index = index
+            break
+
+    # 키가 가장 비슷한 사람들 4명을 구하고 본인과 한 리스트에 배열하기
+    if my_index == 0:
+        compare_target = specification_list[:5]
+    elif my_index == 1:
+        compare_target = specification_list[0:5]
+    elif my_index == len(specification_list) - 2:
+        compare_target = specification_list[-5:]
+    elif my_index == len(specification_list) - 1:
+        compare_target = specification_list[-5:]  # or -5:-2 ?
+    else:
+        compare_target = specification_list[my_index - 2:my_index + 3]
+
+    # closest_index = euclidean_list.index(min(euclidean_list))
+    # # similar_entertainer = json.loads(df.to_json(orient='records'))[closest_index]
+
+
+    # # 2안. 좌표평면에 mapping 후 유클리드 거리 유사도 측정
+    # # 좌표평면에 mapping 후 유클리드 거리 유사도 측정
+    user = np.array([my_specification['height'], my_specification['shoulder_ratio'], my_specification['hip_ratio']])
+    vectorized_entertainers = []
+    for target in compare_target:
+        if target['name'] == 'circlin':
+            pass
+        else:
+            np_ent = np.asarray([target['height'], target['shoulder_ratio'], target['hip_ratio']])
+            np_ent = np.array([float(x) for x in np_ent])
+            vectorized_entertainers.append(np_ent)
 
     data_normalizer = Normalizer(norm='l2').fit(vectorized_entertainers)  # L2 normalization for euclidean distance.
     entertainer_normalized = data_normalizer.transform(vectorized_entertainers)
@@ -466,7 +503,8 @@ def find_similar_entertainer(cursor, gender: str, user_height: float, user_hip_r
         euclidean_list.append(euclidean_distances(user_normalized.reshape(1, -1), normalized.reshape(1, -1)))
 
     closest_index = euclidean_list.index(min(euclidean_list))
-    similar_entertainer = json.loads(df.to_json(orient='records'))[closest_index]
+    # similar_entertainer = json.loads(df.to_json(orient='records'))[closest_index]
+    similar_entertainer = compare_target[closest_index]
 
     # 연예인 정보로 추천 프로그램 찾기
     sql = f"""
