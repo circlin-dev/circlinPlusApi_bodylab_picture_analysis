@@ -1,3 +1,4 @@
+from global_things.functions.slack import slack_error_notification
 
 
 class InvalidAPIUsage(Exception):
@@ -11,7 +12,8 @@ class InvalidAPIUsage(Exception):
                  error_message: str = '',
                  query: str = '',
                  method: str = '',
-                 status_code=None, payload=None,
+                 status_code=None,
+                 payload=None,
                  result=False):
         super().__init__()
         self.user_ip = user_ip

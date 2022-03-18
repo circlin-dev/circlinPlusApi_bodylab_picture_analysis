@@ -375,7 +375,7 @@ def trial_analysis(url, output_save_path, file_name):
     except:
         result_dict = {
             'message': 'Bad pose. Head or hip width is 0',
-            'result': True
+            'result': False
         }
         return result_dict
 
@@ -886,7 +886,7 @@ def analysis(url, user_id):
     except:
         result_dict = {
             'message': 'Bad pose. Head or hip width is 0',
-            'result': True
+            'result': False
         }
         return json.dumps(result_dict)
 
